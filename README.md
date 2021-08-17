@@ -1,4 +1,4 @@
-# Agoura - Project Management
+# Agoura - Agile Project Management
 Available on the Salesforce AppExchange [Agoura • Agile Project Management](https://appexchange.salesforce.com/appxListingDetail?listingId=a0N3A00000FZ8fOUAT)
 
 Introduce your teams to Agile on top of Salesforce the #1 CRM platform in the world • 100% native and fully integrated into Salesforce Lightning

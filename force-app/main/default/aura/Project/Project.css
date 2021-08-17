@@ -1,0 +1,69 @@
+.THIS .weight700 {
+    font-weight:700;
+}
+.THIS .inputSelectBigger {
+    min-height:calc(2.125rem + 2px);
+}
+.THIS .slds-scrollable_y {
+    padding-bottom:8rem;
+    background:white;
+}
+.THIS .slds-table_header-fixed_container {
+    background:white;   
+}
+.THIS .slds-icon-standard-dashboard, 
+.THIS .slds-icon-standard-avatar 
+{
+    padding: 0 3px 3px;
+}
+.THIS .slds-icon_container_circle
+{
+    padding: 3px 3px 3px;
+}
+.THIS lightning-icon.slds-icon-standard-avatar,
+.THIS lightning-icon.slds-icon-action-new-campaign,
+.THIS lightning-icon.slds-icon-action-priority,
+.THIS lightning-icon.slds-icon-standard-dashboard,
+.THIS lightning-icon.agouraIcon  {
+    background-color: rgba(0,112,192,.8);
+}
+.THIS lightning-tab-bar UL LI {
+    padding-left:2em;
+    padding-right:2em;
+}
+.THIS .DropDownRight > .slds-dropdown_left {
+    left: auto !important;
+    right: 0 !important;
+    transform: translateX(0) !important;
+}
+.THIS .DropDownRight > .slds-dropdown_left > ul > li > a > span {
+    padding:0 1.5em;
+}
+.THIS .slds-tabs_default__content {
+    position:static !important;
+}
+.THIS .manualButtonFirst > button {
+    border-radius: .25rem 0 0 .25em !important;
+    border-right:0 !important;
+    height: 2.5em;
+}
+.THIS .manualButtonMiddle > button {
+    border-radius: 0 !important;
+    border-left:0 !important;
+    border-right:0 !important;
+    height: 2.5em;
+}
+.THIS .manualButtonMiddle2 > button {
+    border-radius: 0 !important;
+    border-right:0 !important;
+    height: 2.5em;
+}
+.THIS .DropDownRight > button {
+    height: 2.5em;
+}
+.THIS button[title="Refresh this feed"] {
+    display:none;
+}
+.THIS .uiInputCheckbox {
+    box-shadow: none !important;
+}

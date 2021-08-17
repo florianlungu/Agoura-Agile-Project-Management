@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomFieldTranslation xmlns="http://soap.sforce.com/2006/04/metadata">
+    <label><!-- Type --></label>
+    <name>Type__c</name>
+    <picklistValues>
+        <masterLabel>Executive Sponsor</masterLabel>
+        <translation><!-- Executive Sponsor --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Product Owner</masterLabel>
+        <translation><!-- Product Owner --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Project Goal</masterLabel>
+        <translation><!-- Project Goal --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Project Link</masterLabel>
+        <translation><!-- Project Link --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Project Milestone</masterLabel>
+        <translation><!-- Project Milestone --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Project Record Owner</masterLabel>
+        <translation><!-- Project Record Owner --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Project Risk</masterLabel>
+        <translation><!-- Project Risk --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Project Stakeholder</masterLabel>
+        <translation><!-- Project Stakeholder --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Project Swim Lane</masterLabel>
+        <translation><!-- Project Swim Lane --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Project Team Member</masterLabel>
+        <translation><!-- Project Team Member --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Scrum Master</masterLabel>
+        <translation><!-- Scrum Master --></translation>
+    </picklistValues>
+</CustomFieldTranslation>

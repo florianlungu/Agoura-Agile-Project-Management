@@ -1,0 +1,10 @@
+<aura:component>
+    <aura:registerEvent name="onchange" type="c:ValueChange"/>    
+    <aura:attribute name="selectedValue" type="String" default="10"/>
+    <lightning:select name="rowSelector" label="Rows" value="{!v.selectedValue}" onchange="{!c.changeHandler}">
+        <option text="10" value="10"/>
+        <option text="20" value="20"/>
+        <option text="50" value="50"/>
+        <option text="100" value="100"/>
+    </lightning:select>
+</aura:component>

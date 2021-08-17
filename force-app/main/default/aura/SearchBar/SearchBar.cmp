@@ -1,0 +1,8 @@
+<aura:component>
+    <aura:registerEvent name="onchange" type="c:ValueChange" />
+    <div class="slds-form-element">
+        <div class="slds-form-element__control">
+            <input type="text" aura:id="searchKey" class="slds-input" onkeyup="{!c.keyupHandler}" />
+        </div>
+    </div>
+</aura:component>

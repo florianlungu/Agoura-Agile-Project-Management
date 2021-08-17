@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomFieldTranslation xmlns="http://soap.sforce.com/2006/04/metadata">
+    <help><!-- All Project Tasks will begin with this abbreviation so it’s best to keep it short --></help>
+    <label><!-- Project Abbreviation --></label>
+    <name>Project_Abbreviation__c</name>
+</CustomFieldTranslation>

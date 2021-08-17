@@ -1,0 +1,24 @@
+.THIS .innerPadding {
+    padding: 0 7px 14px;
+}
+.THIS .outerPadding {
+    padding: 0 7px;
+}
+.THIS .minHeight {
+    min-height: 65vh;
+}
+.THIS .agouraIcon {
+    background-color: rgba(0,112,192,.8);
+}
+.THIS .DropDownRight > .slds-dropdown_left {
+    left: auto !important;
+    right: 0 !important;
+    transform: translateX(0) !important;
+}
+.THIS .DropDownRight > .slds-dropdown_left > ul > li > a > span {
+    padding:0 1.5em;
+}
+.THIS .DropDownRight > button {
+    border-radius: 0 .25rem .25em 0 !important;
+    height: 2.5em;
+}

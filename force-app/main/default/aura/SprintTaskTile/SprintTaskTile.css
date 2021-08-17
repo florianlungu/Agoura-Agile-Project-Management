@@ -1,0 +1,82 @@
+.THIS .slds-input {
+    width: 60px;
+    padding: 6px;
+    height:20px;
+    line-height:18px;
+    margin-top: 2px;
+}
+.THIS a {
+	color: inherit;
+}
+.THIS label {
+    display: none;
+}
+.THIS .title {
+    font-weight: bold;
+}
+.THIS .slds-form-element {
+	display: inline-block;
+	margin: 0 4px;
+}
+.THIS {
+	border: solid 1px transparent;
+	border-radius: 4px;
+}
+.THIS:hover {
+	border-color: rgba(18,127,178,.5);
+}
+.THIS .toggle {
+	display: none;
+}
+.THIS:hover .toggle {
+	display: inline;
+}
+.THIS .open {
+    font-weight: bold;
+	color: rgba(11,111,206,.8);
+}
+.THIS .inprogress {
+    font-weight: bold;
+	color: rgba(51,204,255,.8);
+}
+.THIS .readytotest {
+    font-weight: bold;
+	color: rgba(249,111,183,.8);
+}
+.THIS .testing {
+    font-weight: bold;
+	color: rgba(168,69,220,.8);
+}
+.THIS .readytodeploy {
+    font-weight: bold;
+	color: rgba(255,204,51,.8);
+}
+.THIS .canceled {
+    font-weight: bold;
+	color: rgba(175,202,223,.8);
+}
+.THIS .resolved {
+    font-weight: bold;
+	color: rgba(65,146,73,.8);
+}
+.THIS .done {
+    font-weight: bold;
+	color: rgba(120,201,83,.8);
+}
+.THIS .blocked {
+    font-weight: bold;
+    color: red;
+}
+.THIS .slds-button_icon-more {
+    border:0 !important;
+}
+.THIS .assignedTo > UL {
+    padding-top:0px;
+}
+.THIS .slds-pill__action {
+    border:0 !important;
+    margin-right: .35rem !important;
+}
+.THIS .hide-me {
+    display: none !important;
+}

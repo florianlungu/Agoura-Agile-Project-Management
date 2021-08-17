@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomFieldTranslation xmlns="http://soap.sforce.com/2006/04/metadata">
+    <label><!-- RACI --></label>
+    <name>RACI__c</name>
+    <picklistValues>
+        <masterLabel>Accountable</masterLabel>
+        <translation><!-- Accountable --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Consulted</masterLabel>
+        <translation><!-- Consulted --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Informed</masterLabel>
+        <translation><!-- Informed --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Responsible</masterLabel>
+        <translation><!-- Responsible --></translation>
+    </picklistValues>
+</CustomFieldTranslation>

@@ -1,0 +1,55 @@
+.THIS .weight700 {
+    font-weight:700;
+}
+.THIS .inputSelectBigger {
+    min-height:calc(2.125rem + 2px);
+}
+.THIS .slds-scrollable_y {
+    padding-bottom:8rem;
+    background:white;
+}
+.THIS .slds-table_header-fixed_container {
+    background:white;   
+}
+.THIS .slds-icon_container_circle, 
+.THIS .slds-icon-standard-dashboard, 
+.THIS .slds-icon-standard-avatar 
+{
+    padding: 0 3px 3px;
+}
+.THIS .innerPadding {
+    padding: 0 7px 14px;
+}
+.THIS .outerPadding {
+    padding: 0 7px;
+}
+.THIS .minHeight {
+    min-height: 65vh;
+}
+.THIS .blocked {
+    font-weight: bold;
+    color: red;
+}
+.THIS .manualButton:hover {
+    text-decoration: none;
+}
+.THIS .agouraIcon {
+    background-color: rgba(0,112,192,.8);
+}
+.THIS .DropDownRight > .slds-dropdown_left {
+    left: auto !important;
+    right: 0 !important;
+    transform: translateX(0) !important;
+}
+.THIS .DropDownRight > .slds-dropdown_left > ul > li > a > span {
+    padding:0 1.5em;
+}
+.THIS button[title="Refresh this feed"] {
+    display:none;
+}
+.THIS .manualButtonMiddle > button {
+    border-radius: 0 !important;
+    border-left:0 !important;
+    border-right:0 !important;
+    height: 2.5em;
+}

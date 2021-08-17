@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomFieldTranslation xmlns="http://soap.sforce.com/2006/04/metadata">
+    <label><!-- Sprint Length --></label>
+    <name>Sprint_Length__c</name>
+    <picklistValues>
+        <masterLabel>1 week</masterLabel>
+        <translation><!-- 1 week --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>2 weeks</masterLabel>
+        <translation><!-- 2 weeks --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>3 weeks</masterLabel>
+        <translation><!-- 3 weeks --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>4 weeks</masterLabel>
+        <translation><!-- 4 weeks --></translation>
+    </picklistValues>
+</CustomFieldTranslation>

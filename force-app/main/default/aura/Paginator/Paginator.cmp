@@ -1,0 +1,41 @@
+<aura:component>
+    <aura:attribute name="page" type="integer"/>
+    <aura:attribute name="pages" type="integer"/>
+    <aura:attribute name="total" type="integer"/>
+    <aura:attribute name="pageSize" type="integer" default="0"/>
+    <aura:attribute name="label" type="String" default="items"/>    
+    <aura:registerEvent name="firstPage" type="c:PaginatorEvent"/>
+    <aura:registerEvent name="previousPage" type="c:PaginatorEvent"/>
+    <aura:registerEvent name="nextPage" type="c:PaginatorEvent"/>
+    <aura:registerEvent name="lastPage" type="c:PaginatorEvent"/>
+    
+    <div class="container">
+        <div class="left">
+            <aura:if isTrue="{!v.page > 1}">
+                <lightning:buttonIcon iconName="utility:back" variant="border-filled" onclick="{!c.firstPage}"
+                                      title="First Page" alternativeText="First Page"/>
+                <lightning:buttonIcon iconName="utility:chevronleft" variant="border-filled" onclick="{!c.previousPage}"
+                                      title="Previous Page" alternativeText="Previous Page"/>
+            </aura:if>
+        </div>
+        <div class="centered">{!v.page} of {!v.pages}</div>
+        <div class="right">
+            <!-- ensure salesforce offset limit not exceeded -->
+            <aura:if isTrue="{!v.page*v.pageSize &lt; 2000}">
+                <aura:if isTrue="{!v.page &lt; v.pages}">
+                    <lightning:buttonIcon iconName="utility:chevronright" variant="border-filled" onclick="{!c.nextPage}"
+                                          title="Next Page" alternativeText="Next Page"/>
+                    <aura:if isTrue="{!v.total &lt; 2000}">
+                        <lightning:buttonIcon iconName="utility:forward" variant="border-filled" onclick="{!c.lastPage}"
+                                              title="Last Page" alternativeText="Last Page"/>
+                    </aura:if>
+                </aura:if>
+                <aura:set attribute="else">
+                    <aura:if isTrue="{!v.page &gt; 1}">
+                        <div class="centered">(Max Viewable)</div>
+                    </aura:if>
+                </aura:set>
+            </aura:if>
+        </div>
+    </div>    
+</aura:component>

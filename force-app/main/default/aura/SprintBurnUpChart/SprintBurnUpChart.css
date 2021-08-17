@@ -1,0 +1,9 @@
+.THIS .chart{
+    position: relative;
+    text-align: center;
+    width: 300px;
+    height: 150px;
+}
+.THIS .slds-text-heading--medium {
+    margin-bottom: 12px;
+}

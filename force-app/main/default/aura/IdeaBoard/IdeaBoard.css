@@ -1,0 +1,32 @@
+.THIS .agouraIcon {
+    background-color: rgba(0,112,192,.8);
+}
+.THIS .DropDownRight > .slds-dropdown_left {
+    left: auto !important;
+    right: 0 !important;
+    transform: translateX(0) !important;
+}
+.THIS .DropDownRight > .slds-dropdown_left > ul > li > a > span {
+    padding:0 1.5em;
+}
+.THIS .FirstButtonStyle {
+    border-radius: .25rem 0 0 .25rem;
+}
+.THIS .Credit {
+    padding-top: 3px;
+    color: #acacac;
+    font-size: .75em;
+    text-align: right;
+}
+.THIS .slds-card__body_inner {
+    margin-bottom: 3px;
+}
+.THIS button[title="Refresh this feed"] {
+    display:none;
+}
+.THIS .manualButtonMiddle > button {
+    border-radius: 0 !important;
+    border-left:0 !important;
+    border-right:0 !important;
+    height: 2.5em;
+}

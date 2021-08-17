@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomFieldTranslation xmlns="http://soap.sforce.com/2006/04/metadata">
+    <label><!-- Bug Type --></label>
+    <name>Bug_Type__c</name>
+    <picklistValues>
+        <masterLabel>Blocker</masterLabel>
+        <translation><!-- Blocker --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Critical</masterLabel>
+        <translation><!-- Critical --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Major</masterLabel>
+        <translation><!-- Major --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Minor</masterLabel>
+        <translation><!-- Minor --></translation>
+    </picklistValues>
+</CustomFieldTranslation>

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomFieldTranslation xmlns="http://soap.sforce.com/2006/04/metadata">
+    <label><!-- Bug Resolution --></label>
+    <name>Resolution__c</name>
+    <picklistValues>
+        <masterLabel>Cannot Reproduce</masterLabel>
+        <translation><!-- Cannot Reproduce --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Duplicate</masterLabel>
+        <translation><!-- Duplicate --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Fixed</masterLabel>
+        <translation><!-- Fixed --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Incomplete</masterLabel>
+        <translation><!-- Incomplete --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Obsolete</masterLabel>
+        <translation><!-- Obsolete --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Won&apos;t Fix</masterLabel>
+        <translation><!-- Won&apos;t Fix --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Works as Designed</masterLabel>
+        <translation><!-- Works as Designed --></translation>
+    </picklistValues>
+</CustomFieldTranslation>

@@ -1,0 +1,42 @@
+<aura:component>
+    <aura:attribute type="List" name="selection" required="true" description="List of selected items (a list of only one 
+                    element for a single entry lookup). Data structure is the same as Apex List&lt;LookupSearchResult&gt;."/>
+    <aura:attribute type="Boolean" name="showLink" default="true" description="Whether this component show URL link. Optional, defaults to true."/>
+    
+	<ul class="slds-listbox slds-listbox_inline slds-p-top_xxx-small slds-truncate" role="group">
+        <aura:iteration items="{!v.selection}" var="item">
+            <li role="presentation" class="slds-listbox__item">
+                <aura:if isTrue="{!item.sObjectType == 'User'}">
+                    <span class="slds-pill slds-pill_link">
+                        <span class="slds-pill__icon_container">
+                            <span class="slds-avatar slds-avatar_circle" title="User avatar">
+                                <img alt="{!item.title}" src="{!item.icon}" title="User avatar" />
+                            </span>
+                        </span>
+                        <a href="{!'/lightning/r/'+item.sObjectType+'/'+item.id+'/view'}" 
+                           class="slds-pill__action" title="{!item.title}">
+                            <span class="slds-pill__label">{!item.title}</span>
+                        </a>
+                    </span>
+                    
+                    <aura:set attribute="else">
+                        <aura:if isTrue="{!v.showLink}">
+                            <lightning:pill label="{!item.title}" name="{!item.id}" href="{!'/lightning/r/'+item.sObjectType+'/'+item.id+'/view'}">
+                                <aura:set attribute="media">
+                                    <lightning:icon iconName="{! empty(item.icon) ? 'standard:default' : item.icon}" class="agouraIcon"/>
+                                </aura:set>
+                            </lightning:pill>
+                            <aura:set attribute="else">
+                                <lightning:pill label="{!item.title}" name="{!item.id}">
+                                    <aura:set attribute="media">
+                                        <lightning:icon iconName="{! empty(item.icon) ? 'standard:default' : item.icon}" class="agouraIcon"/>
+                                    </aura:set>
+                                </lightning:pill>                            
+                            </aura:set>
+                        </aura:if>
+                    </aura:set>
+                </aura:if>
+            </li>
+        </aura:iteration>
+    </ul>
+</aura:component>

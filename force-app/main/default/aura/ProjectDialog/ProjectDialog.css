@@ -1,0 +1,6 @@
+.THIS .bigly textarea {
+    height:15em;
+}
+.THIS lightning-checkbox-group > fieldset > legend {
+    font-weight: normal !important;
+}

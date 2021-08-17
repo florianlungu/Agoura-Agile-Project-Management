@@ -1,0 +1,316 @@
+<aura:component implements="lightning:actionOverride,flexipage:availableForRecordHome,force:hasRecordId" 
+                controller="IdeaBoardControllerExt" access="global">
+    <aura:attribute name="record" type="Id" />
+    <aura:attribute name="targetFields" type="IdeaBoard__c" />
+    <aura:attribute name="recordError" type="String" />
+    <aura:attribute name="hasEditAccess" type="boolean" default="false"/>    
+    <aura:attribute name="hasDeleteAccess" type="boolean" default="false"/>  
+    <aura:attribute name="hasTransferAccess" type="boolean" default="false"/>
+    <aura:attribute name="showConfirmDeleteModal" type="boolean" default="false"/>
+    <aura:attribute name="showConfirmDeleteToast" type="boolean" default="false"/>
+    <aura:attribute name="showConfirmModal" type="boolean" default="false"/>
+    <aura:attribute name="showConfirmTitle" type="String"/>
+    <aura:attribute name="showConfirmAsk" type="String"/>
+    <aura:attribute name="showMoreInfo" type="boolean" default="false"/>
+    <aura:attribute name="ownerList" type="List" default="[]"/>	
+    <aura:attribute name="createdByList" type="List" default="[]"/>	
+    <aura:attribute name="lastModifiedByList" type="List" default="[]"/>	
+    <aura:attribute name="ideaTagList" type="List" default="[]"/>
+    <aura:attribute name="ideaProjectList" type="List" default="[]"/>	
+    <aura:attribute name="readAccessList" type="List" default="[]"/>	
+    <aura:attribute name="editAccessList" type="List" default="[]"/>
+    <aura:attribute name="windowTitle" type="String" />
+    <aura:attribute name="recordNewOwnerSelection" type="List" default="[]"/>	
+    <aura:attribute name="fieldLabelMap" type="Map" default="{}"/>	
+    <aura:attribute name="hasProjects" type="boolean" default="false"/>
+    <aura:attribute name="chatterEnabled" type="boolean" default="false"/>
+    
+    <force:recordData aura:id="record"
+                      recordId="{!v.recordId}"
+                      targetError="{!v.recordError}"
+                      targetRecord="{!v.record}"
+                      targetFields="{!v.targetFields}"
+                      recordUpdated="{!c.handleRecordUpdated}"
+                      fields="Name, AgouraFree__Title__c, AgouraFree__Problem__c, AgouraFree__Existing_Alternatives__c, AgouraFree__Solution__c, 
+                              AgouraFree__Key_Metrics__c, AgouraFree__Unique_Value_Proposition__c, AgouraFree__High_Level_Concept__c, 
+                              AgouraFree__Unfair_Advantage__c, AgouraFree__Channels__c, AgouraFree__Customer_Segment__c, AgouraFree__Early_Adopters__c, 
+                              AgouraFree__Cost_Structure__c, AgouraFree__Revenue_Streams__c, AgouraFree__Status__c, AgouraFree__Comments__c,
+                              CreatedDate, LastModifiedDate"
+                      mode="VIEW"/>
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+    
+    <!-- Display Lightning Data Service errors, if any -->
+    <aura:if isTrue="{!not(empty(v.recordError))}">
+        <div class="recordError">
+            <ui:message title="Error" severity="error" closable="true">
+                {!v.recordError}
+            </ui:message>
+        </div>
+    </aura:if>
+    
+    <!-- Confirm Modal -->
+    <aura:if isTrue="{!v.showConfirmModal}">
+        <div role="dialog" tabindex="-1" aria-labelledby="header99" class="slds-modal slds-fade-in-open ">
+            <div class="slds-modal__container">
+                <div class="slds-modal__header">
+                    <button class="slds-button slds-modal__close slds-button--icon-inverse" title="Close" onclick="{!c.closeConfirm}">
+                        X
+                        <span class="slds-assistive-text">Close</span>
+                    </button>
+                    <h2 id="header99" class="slds-text-heading--medium">{!v.showConfirmTitle}</h2>
+                </div>   
+                <div class="slds-modal__content slds-p-around--medium">
+                    <div class="slds-align_absolute-center" style="min-height: 5rem;">                        
+                        <aura:if isTrue="{!v.showConfirmTitle == 'Change Owner'}">
+                            <span class="slds-p-around_medium">{!v.showConfirmAsk}<br /><br /> 
+                                <c:Lookup aura:id="propNewOwner" selection="{!v.recordNewOwnerSelection}" 
+                                          onSearch="{!c.lookupNewOwnerSearch}" label="Record Owner" placeholder="Search Users"
+                                          isRequired="true"/>
+                            </span> 
+                        </aura:if>                       
+                    </div>
+                </div>
+                <div class="slds-modal__footer">
+                    <button class="slds-button slds-button--neutral" onclick="{!c.closeConfirm}">Cancel</button>                    
+                    <aura:if isTrue="{!v.showConfirmTitle == 'Change Owner'}">
+                        <button class="slds-button slds-button--brand" onclick="{!c.changeOwner}">Change Owner</button>
+                    </aura:if>                    
+                </div>
+            </div>
+        </div>
+        <div class="slds-backdrop slds-backdrop--open"></div>
+    </aura:if>
+    
+    <!-- Confirm Delete Modal -->
+    <aura:if isTrue="{!v.showConfirmDeleteModal}">
+        <div role="dialog" tabindex="-1" aria-labelledby="header99" class="slds-modal slds-fade-in-open ">
+            <div class="slds-modal__container">
+                <div class="slds-modal__header">
+                    <button class="slds-button slds-modal__close slds-button--icon-inverse" title="Close" onclick="{!c.closeConfirmDelete}">
+                        X
+                        <span class="slds-assistive-text">Close</span>
+                    </button>
+                    <h2 id="header99" class="slds-text-heading--medium">Delete Idea Board</h2>
+                </div>   
+                <div class="slds-modal__content slds-p-around--medium">
+                    <div class="slds-align_absolute-center" style="height: 5rem;">
+                        <lightning:icon size="medium" iconName="action:delete" alternativeText="Confirm Delete" />
+                        <span class="slds-p-around_medium">Are you sure you want to delete this Idea Board?</span>
+                    </div>
+                </div>
+                <div class="slds-modal__footer">
+                    <button class="slds-button slds-button--neutral" onclick="{!c.closeConfirmDelete}" >Cancel</button>
+                    <button class="slds-button slds-button--brand" onclick="{!c.deleteRecord}">Delete</button>
+                </div>
+            </div>
+        </div>
+        <div class="slds-backdrop slds-backdrop--open"></div>
+    </aura:if>
+    
+    <!-- Header -->
+    <article class="slds-card" id="ideaRecord" onmouseover="{!c.updateWebPageTitle}">
+        <header class="slds-p-horizontal_medium">   
+            <lightning:layout pullToBoundary="small" multipleRows="True">                            
+                <lightning:layoutItem flexibility="auto" size="12" largeDeviceSize="8" class="slds-p-horizontal_small"> 
+                    <div class="slds-size_1-of-1 slds-p-bottom_small">
+                        <div class="slds-media__figure slds-p-top_medium" style="float:left;">
+                            <lightning:icon iconName="standard:solution" alternativeText="Idea Board" class="agouraIcon"/>
+                        </div>
+                        <div class="slds-media__body slds-p-top_small">
+                            <p>Idea Board • {!v.targetFields.Name}</p>  
+                            <h1 class="slds-page-header__title slds-truncate slds-align-bottom" 
+                                title="{!v.targetFields.AgouraFree__Title__c}">
+                                <span>{!v.targetFields.AgouraFree__Title__c}</span>
+                            </h1>
+                        </div>
+                    </div>
+                </lightning:layoutItem>
+                <lightning:layoutItem flexibility="auto" size="12" largeDeviceSize="4" class=" slds-p-horizontal_small"> 
+                    <div class="slds-size_1-of-1">
+                        <div class=" slds-p-bottom_small slds-p-top_medium" style="float:right">
+                            <lightning:buttonGroup>                                    
+                                <lightning:button variant="neutral" label="More Info" onclick="{!c.showMoreInfo}" 
+                                                  class="slds-show" aura:id="MoreInfoButton" />
+                                <lightning:button variant="neutral" label="Idea Board" onclick="{!c.showDetails}" 
+                                                  class="slds-hide FirstButtonStyle" aura:id="DetailsButton" />                                 
+                                <lightning:buttonMenu alternativeText="Show menu" class="slds-button_last DropDownRight" 
+                                                      onselect="{!c.handleMenuSelect}">
+                                    <aura:if isTrue="{!and(empty(v.recordError),v.hasTransferAccess == true)}">
+                                        <lightning:menuItem label="Change Owner" value="Change Owner" />
+                                    </aura:if> 
+                                    <lightning:menuItem label="Clone" value="Clone" />
+                                    <aura:if isTrue="{!and(empty(v.recordError),v.hasDeleteAccess == true)}">
+                                        <lightning:menuItem label="Delete" value="Delete" />
+                                    </aura:if> 
+                                    <aura:if isTrue="{!and(empty(v.recordError),v.hasEditAccess == true)}">
+                                        <lightning:menuItem label="Edit" value="Edit" />
+                                    </aura:if>
+                                </lightning:buttonMenu>
+                            </lightning:buttonGroup>
+                        </div>
+                    </div>
+                </lightning:layoutItem>
+            </lightning:layout>
+        </header>
+        
+        <div class="slds-card__body slds-card__body_inner">
+            
+            <!-- Details Tab -->
+            <div aura:id="Details" class="slds-show">
+                <div class="slds-grid slds-gutters slds-wrap">				
+                    <div class="slds-col--padded slds-box slds-size_1-of-5" style="height:45vh; overflow-x:auto">
+                        <div style="min-height:20vh; white-space:pre-wrap">
+                            <h2 class="slds-page-header__title slds-truncate slds-align-bottom">{!v.fieldLabelMap.AgouraFree__Problem__c}</h2>
+                            <span>{!v.targetFields.AgouraFree__Problem__c}</span>
+                        </div>
+                        <div class="slds-p-top_medium" style="margin-top:1em; white-space:pre-wrap">
+                            <h2 class="slds-page-header__title slds-truncate slds-align-bottom">{!v.fieldLabelMap.AgouraFree__Existing_Alternatives__c}</h2>
+                            <span>{!v.targetFields.AgouraFree__Existing_Alternatives__c}</span>
+                        </div>
+                    </div>				
+                    <div class="slds-col--padded slds-box slds-size_1-of-5" style="height:45vh; overflow-x:auto">
+                        <div style="min-height:20vh; white-space:pre-wrap">
+                            <h2 class="slds-page-header__title slds-truncate slds-align-bottom">{!v.fieldLabelMap.AgouraFree__Solution__c}</h2>
+                            <span>{!v.targetFields.AgouraFree__Solution__c}</span>
+                        </div>
+                        <div class="slds-border_top slds-p-top_medium" style="margin-top:1em; white-space:pre-wrap">
+                            <h2 class="slds-page-header__title slds-truncate slds-align-bottom">{!v.fieldLabelMap.AgouraFree__Key_Metrics__c}</h2>
+                            <span>{!v.targetFields.AgouraFree__Key_Metrics__c}</span>
+                        </div>
+                    </div>				
+                    <div class="slds-col--padded slds-box slds-size_1-of-5" style="height:45vh; overflow-x:auto">
+                        <div style="min-height:20vh; white-space:pre-wrap">
+                            <h2 class="slds-page-header__title slds-truncate slds-align-bottom">{!v.fieldLabelMap.AgouraFree__Unique_Value_Proposition__c}</h2>
+                            <span>{!v.targetFields.AgouraFree__Unique_Value_Proposition__c}</span>
+                        </div>
+                        <div class="slds-p-top_medium" style="margin-top:1em; white-space:pre-wrap">
+                            <h2 class="slds-page-header__title slds-truncate slds-align-bottom">{!v.fieldLabelMap.AgouraFree__High_Level_Concept__c}</h2>
+                            <span>{!v.targetFields.AgouraFree__High_Level_Concept__c}</span>
+                        </div>
+                    </div>				
+                    <div class="slds-col--padded slds-box slds-size_1-of-5" style="height:45vh; overflow-x:auto">
+                        <div style="min-height:20vh; white-space:pre-wrap">
+                            <h2  class="slds-page-header__title slds-truncate slds-align-bottom">{!v.fieldLabelMap.AgouraFree__Unfair_Advantage__c}</h2>
+                            <span>{!v.targetFields.AgouraFree__Unfair_Advantage__c}</span>
+                        </div>
+                        <div class="slds-border_top slds-p-top_medium" style="margin-top:1em; white-space:pre-wrap">
+                            <h2 class="slds-page-header__title slds-truncate slds-align-bottom">{!v.fieldLabelMap.AgouraFree__Channels__c}</h2>
+                            <span>{!v.targetFields.AgouraFree__Channels__c}</span>
+                        </div>
+                    </div>				
+                    <div class="slds-col--padded slds-box slds-size_1-of-5" style="height:45vh; overflow-x:auto">
+                        <div style="min-height:20vh; white-space:pre-wrap">
+                            <h2 class="slds-page-header__title slds-truncate slds-align-bottom">{!v.fieldLabelMap.AgouraFree__Customer_Segment__c}</h2>
+                            <span>{!v.targetFields.AgouraFree__Customer_Segment__c}</span>
+                        </div>
+                        <div class="slds-p-top_medium" style="margin-top:1em; white-space:pre-wrap">
+                            <h2  class="slds-page-header__title slds-truncate slds-align-bottom">{!v.fieldLabelMap.AgouraFree__Early_Adopters__c}</h2>
+                            <span>{!v.targetFields.AgouraFree__Early_Adopters__c}</span>
+                        </div>
+                    </div>				
+                    <div class="slds-col--padded slds-box slds-size_1-of-2" style="height:30vh; overflow-x:auto; white-space:pre-wrap">
+                        <h2 class="slds-page-header__title slds-truncate slds-align-bottom">{!v.fieldLabelMap.AgouraFree__Cost_Structure__c}</h2>
+                        <span>{!v.targetFields.AgouraFree__Cost_Structure__c}</span>
+                    </div>
+                    <div class="slds-col--padded slds-box slds-size_1-of-2" style="height:30vh; overflow-x:auto; white-space:pre-wrap">
+                        <h2 class="slds-page-header__title slds-truncate slds-align-bottom">{!v.fieldLabelMap.AgouraFree__Revenue_Streams__c}</h2>
+                        <span>{!v.targetFields.AgouraFree__Revenue_Streams__c}</span>
+                    </div>
+                </div>
+                <div class="Credit">Template is the Lean Canvas by Ash Maurya adopted from the Business Model Canvas and is licensed under CC-BY-SA-3.0</div>
+            </div>
+            
+            <!-- More Info Tab -->
+            <div aura:id="MoreInfo" class="slds-hide">
+                <div class="slds-grid slds-gutters slds-wrap">
+                    <div class="slds-size_1-of-1" style="padding:1em; white-space:pre-wrap">
+                        <p class="slds-text-title slds-m-bottom_xx-small">{!v.fieldLabelMap.AgouraFree__Comments__c}</p>
+                        <p class="slds-text-body_regular">{!v.targetFields.AgouraFree__Comments__c}</p>
+                    </div>
+                    <div class="slds-size_1-of-2" style="padding:1em; white-space:pre-wrap">
+                        <p class="slds-text-title slds-m-bottom_xx-small">Tags</p>
+                        <div id="{! globalId + '_selection' }" role="listbox" aria-orientation="horizontal">
+                            <c:LookupDisplay selection="{!v.ideaTagList}" showLink="false" />
+                        </div>
+                    </div>
+                    <div class="slds-size_1-of-2" style="padding:1em; white-space:pre-wrap">
+                        <aura:if isTrue="{!v.hasProjects}">
+                            <p class="slds-text-title slds-m-bottom_xx-small">Projects</p>
+                            <div id="{! globalId + '_selection' }" role="listbox" aria-orientation="horizontal">
+                                <c:LookupDisplay selection="{!v.ideaProjectList}" />
+                            </div>
+                        </aura:if>
+                    </div>
+                    <div class="slds-size_1-of-2" style="padding:1em; white-space:pre-wrap">
+                        <p class="slds-text-title slds-m-bottom_xx-small">{!v.fieldLabelMap.AgouraFree__Status__c}</p>
+                        <span>{!v.targetFields.AgouraFree__Status__c}</span>
+                    </div>
+                    <div class="slds-size_1-of-2" style="padding:1em; white-space:pre-wrap">
+                        <p class="slds-text-title slds-m-bottom_xx-small">Record Owner</p>
+                        <span><c:LookupDisplay selection="{!v.ownerList}" /></span>
+                    </div>
+                    <div class="slds-size_1-of-2" style="padding:1em; white-space:pre-wrap">
+                        <p class="slds-text-title slds-m-bottom_xx-small">Read Access</p>
+                        <div id="{! globalId + '_selection' }" role="listbox" aria-orientation="horizontal">
+                            <c:LookupDisplay selection="{!v.readAccessList}" />
+                        </div>
+                    </div>
+                    <div class="slds-size_1-of-2" style="padding:1em; white-space:pre-wrap">
+                        <p class="slds-text-title slds-m-bottom_xx-small">Edit Access</p>
+                        <div id="{! globalId + '_selection' }" role="listbox" aria-orientation="horizontal">
+                            <c:LookupDisplay selection="{!v.editAccessList}" />
+                        </div>
+                    </div>
+                    <div class="slds-size_1-of-2" style="padding:1em; white-space:pre-wrap">
+                        <p class="slds-text-title slds-m-bottom_xx-small">Created By</p>
+                        <div id="{! globalId + '_selection' }" role="listbox" aria-orientation="horizontal">
+                            <c:LookupDisplay selection="{!v.createdByList}" />
+                            <span class="slds-m-top_xxx-small slds-p-top_xx-small" style="display:inline-block;vertical-align:top;"> on <ui:outputDateTime value="{!v.targetFields.CreatedDate}" /></span>
+                        </div>
+                    </div>
+                    <div class="slds-size_1-of-2" style="padding:1em; white-space:pre-wrap">
+                        <p class="slds-text-title slds-m-bottom_xx-small">Last Modified By</p>
+                        <div id="{! globalId + '_selection' }" role="listbox" aria-orientation="horizontal">
+                            <c:LookupDisplay selection="{!v.lastModifiedByList}" />
+                            <span class="slds-m-top_xxx-small slds-p-top_xx-small" style="display:inline-block;vertical-align:top;"> on <ui:outputDateTime value="{!v.targetFields.LastModifiedDate}" /></span>
+                        </div>      
+                    </div>
+                    
+                    <!-- Chatter -->
+                    <aura:if isTrue="{!v.chatterEnabled}">
+                        <div class="slds-size_1-of-1" style="margin-top: 1em; padding:1em 1em 0">
+                            <h2 class="slds-page-header__title slds-truncate slds-align-bottom">Chatter</h2>
+                        </div>                                           
+                        <div class="slds-size_1-of-1" style="margin-top: 1em; padding:1em 1em 0">
+                            <lightning:inputRichText aura:id="chatterTextPostField" variant="bottom-toolbar" placeholder="Share an update..." 
+                                                     label="Post" labelVisible="true"/>
+                            <lightning:layout pullToBoundary="small" multipleRows="True">                            
+                                <lightning:layoutItem flexibility="auto" size="12" largeDeviceSize="8" class="slds-p-horizontal_small"> 
+                                    <div class="slds-size_1-of-1">
+                                        <p class="slds-text-heading_small slds-p-top_medium weight700">Idea Board Chatter Feed</p> 
+                                    </div>
+                                </lightning:layoutItem>
+                                <lightning:layoutItem flexibility="auto" size="12" largeDeviceSize="4" class=" slds-p-horizontal_small"> 
+                                    <div class="slds-size_1-of-1">
+                                        <div class="slds-p-top_medium" style="float:right">
+                                            <lightning:buttonGroup>   
+                                                <button class="slds-button slds-button--neutral" onclick="{!c.chatterFeedPost}">Share</button>
+                                                <a href="/lightning/page/chatter" class="manualButtonMiddle">
+                                                    <button class="slds-button slds-button_neutral slds-truncate">Chatter</button>
+                                                </a>
+                                                <button class="slds-button slds-button--neutral" onclick="{!c.refreshChatterFeed}">Refresh</button>
+                                            </lightning:buttonGroup>
+                                        </div>
+                                    </div>
+                                </lightning:layoutItem>
+                            </lightning:layout>
+                            <div aura:id="feedContainer" class="feed-container">   
+                                <forceChatter:feed /> 
+                            </div>
+                        </div>
+                    </aura:if>
+                </div>    
+            </div>
+        </div>
+    </article>  
+</aura:component>

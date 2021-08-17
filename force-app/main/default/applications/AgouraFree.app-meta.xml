@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomApplication xmlns="http://soap.sforce.com/2006/04/metadata">
+    <brand>
+        <headerColor>#0070D2</headerColor>
+        <logo>agouralogo</logo>
+        <logoVersion>1</logoVersion>
+        <shouldOverrideOrgTheme>true</shouldOverrideOrgTheme>
+    </brand>
+    <description>Agoura Free Edition — Agile Project Management</description>
+    <formFactors>Small</formFactors>
+    <formFactors>Large</formFactors>
+    <isNavAutoTempTabsDisabled>false</isNavAutoTempTabsDisabled>
+    <isNavPersonalizationDisabled>false</isNavPersonalizationDisabled>
+    <label>Agoura</label>
+    <navType>Standard</navType>
+    <setupExperience>all</setupExperience>
+    <tabs>Home</tabs>
+    <tabs>Project__c</tabs>
+    <tabs>Sprint__c</tabs>
+    <tabs>ProjectTask__c</tabs>
+    <uiType>Lightning</uiType>
+    <utilityBar>Agoura_UtilityBar</utilityBar>
+</CustomApplication>

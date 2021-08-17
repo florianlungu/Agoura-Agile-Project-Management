@@ -1,0 +1,13 @@
+.THIS .fullWidth .slds-dropdown-trigger {
+    width:100%;
+    display: inline-block;
+}
+.THIS .bigly textarea {
+    height:15em;
+}
+.THIS .last textarea {
+    margin-bottom: 3em;
+}
+.THIS lightning-checkbox-group > fieldset > legend {
+    font-weight: normal !important;
+}

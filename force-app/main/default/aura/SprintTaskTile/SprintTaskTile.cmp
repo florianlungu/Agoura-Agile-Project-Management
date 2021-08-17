@@ -1,0 +1,68 @@
+<aura:component access="global">    
+    <aura:attribute name="sprintTaskItem" type="Object"/>
+    <aura:attribute name="index" type="Integer"/>
+    <aura:attribute name="projectSwimLanesList" type="Object[]"/>
+    <aura:attribute name="assignedToList" type="List" default="[]" />
+    <aura:attribute name="assignedTo" type="List" default="[]" />
+    <aura:attribute name="formattedPoints" type="String"/>
+    <aura:attribute name="hasEditAccess" type="boolean" default="false"/>   
+    <aura:attribute name="showCompleteButton" type="boolean" default="false"/> 
+    <aura:attribute name="showRemoveButton" type="boolean" default="false"/> 
+    
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+    
+    <aura:registerEvent name="navigateToSObject" type="force:navigateToSObject"/>
+    <aura:registerEvent name="onStart" type="c:SprintTaskListEvent"/>
+    <aura:registerEvent name="onComplete" type="c:SprintTaskListEvent"/>
+    <aura:registerEvent name="onRemove" type="c:SprintTaskListEvent"/>
+    <aura:registerEvent name="onEdit" type="c:SprintTaskListEvent"/>
+    <aura:registerEvent name="onChangeSwimLane" type="c:SprintTaskListEvent"/>
+    
+    <lightning:layout >
+        <lightning:layoutitem class="slds-p-around_small" flexibility="auto">
+            <span class="{! 'title '+ (v.sprintTaskItem.blocked ? 'blocked' : '') }">
+                <a href="{!'/lightning/r/AgouraFree__ProjectTask__c/'+v.sprintTaskItem.projectTaskId+'/view'}">
+                    {#v.sprintTaskItem.taskName}&nbsp;{#v.sprintTaskItem.title}
+                </a>
+            </span>            
+            <div>
+                <div class="{!v.sprintTaskItem.formattedStatus}" style="float:left;padding-top:3px;">{!v.formattedPoints}&nbsp;Point</div>                    
+                <div style="float:left;padding-top:3px;padding-left:5px;">{#v.sprintTaskItem.type}</div>
+                <aura:if isTrue="{!not(empty(v.sprintTaskItem.assignedTo))}">      
+                    <div id="{! globalId + '_selection' }" role="listbox" aria-orientation="horizontal" class="assignedTo"
+                         style="padding-left:5px;overflow:hidden;">
+                        <c:LookupDisplay selection="{!v.assignedTo}" /> 
+                    </div>   
+                </aura:if>
+            </div>
+            <div style="clear:left">
+                <aura:if isTrue="{!v.hasEditAccess == true}">
+                    <aura:if isTrue="{!v.sprintTaskItem.status == 'Open'}">
+                        <lightning:buttonIcon iconName="utility:right" variant="bare" size="medium" class="toggle slds-m-right_medium"
+                                              onclick="{!c.startHandler}" title="Start Task" alternativeText="Start Task"/>
+                    </aura:if>
+                    <aura:if isTrue="{!v.showCompleteButton == true}">
+                        <lightning:buttonIcon iconName="utility:success" variant="bare" size="medium" class="toggle slds-m-right_medium"
+                                              onclick="{!c.completeHandler}" title="Complete Task" alternativeText="Complete Task"/>
+                    </aura:if>
+                    <a href="{!'/lightning/r/AgouraFree__ProjectTask__c/'+v.sprintTaskItem.projectTaskId+'/edit'}">
+                        <lightning:buttonIcon iconName="utility:edit" variant="bare" size="medium" class="toggle slds-m-right_medium"
+                                              title="Edit Task" alternativeText="Edit Task"/>
+                    </a> 
+                    <aura:if isTrue="{!v.projectSwimLanesList.length > 0}">
+                        <lightning:buttonMenu alternativeText="Change Swim Lane" class="toggle slds-m-right_medium" onselect="{!c.changeSwimLaneHandler}"
+                                              iconName="utility:flow" iconSize="medium">
+                            <aura:iteration items="{!v.projectSwimLanesList}" var="item">
+                                <lightning:menuItem label="{#item.title}" value="{#item.id}" />
+                            </aura:iteration>
+                        </lightning:buttonMenu>
+                    </aura:if>  
+                    <aura:if isTrue="{!v.showRemoveButton == true}">
+                        <lightning:buttonIcon iconName="utility:cut" variant="bare" size="medium" class="toggle"
+                                              onclick="{!c.removeHandler}" title="Remove Task" alternativeText="Remove Task"/>
+                    </aura:if>
+                </aura:if>
+            </div>
+        </lightning:layoutitem>
+    </lightning:layout>     
+</aura:component>

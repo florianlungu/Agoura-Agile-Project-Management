@@ -1,0 +1,17 @@
+<aura:component implements="force:hasRecordId" controller="SprintControllerExt"> 
+    <ltng:require scripts="{!$Resource.chartjs}" afterScriptsLoaded="{!c.scriptsLoaded}" />   
+    <aura:attribute name="recStr" type="String" default="" />
+    <aura:attribute name="burnUpChartData" type="Object[]" default="[]"/>  
+    <aura:attribute name="labelList" type="List" default="[]"/> 
+    <aura:attribute name="labelListBig" type="List" default="[]"/> 
+    <aura:attribute name="targetPointsList" type="List" default="[]"/>     
+    <aura:handler name="change" value="{!v.burnUpChartData}" action="{!c.projectTaskItemsChangeHandler}"/>
+    
+    <lightning:layout >
+        <lightning:layoutItem >
+            <div class="chart">
+                <canvas aura:id="chart" height="60" width="60"></canvas>
+            </div>
+        </lightning:layoutItem>
+    </lightning:layout>      
+</aura:component>

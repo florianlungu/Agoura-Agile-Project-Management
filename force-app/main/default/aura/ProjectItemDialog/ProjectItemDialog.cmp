@@ -1,0 +1,200 @@
+<aura:component implements="lightning:actionOverride,force:hasRecordId" controller="ProjectItemControllerExt">
+    <aura:attribute name="record" type="Id" />
+    <aura:attribute name="targetFields" type="ProjectItem__c" />
+    <aura:attribute name="modalContext" type="String" default="New" />
+    <aura:attribute name="recordError" type="String" default=""/>
+    <aura:attribute name="itemImage" type="String" default=""/>
+    <aura:attribute name="hasEditAccess" type="boolean" default="false"/>    
+    <aura:attribute name="hasDeleteAccess" type="boolean" default="false"/>
+    <aura:attribute name="projectSelection" type="List" default="[]"/>
+    <aura:attribute name="projectSwimLanesList" type="Object" /> 
+    <aura:attribute name="createdByList" type="List" default="[]"/>	
+    <aura:attribute name="lastModifiedByList" type="List" default="[]"/>
+    <aura:attribute name="userSelection" type="List" default="[]"/>
+    <aura:attribute name="windowTitle" type="String" />
+    <aura:attribute name="isUserType" type="boolean" default="false"/>
+    <aura:attribute name="typePicklistValues" type="Object" /> 
+    <aura:attribute name="statusPicklistValues" type="Object" />
+    <aura:attribute name="probabilityPicklistValues" type="Object" />
+    <aura:attribute name="impactPicklistValues" type="Object" />
+    <aura:attribute name="raciPicklistValues" type="Object" />
+    <aura:attribute name="formStyle" type="String" default="{'topDiv':'', 'secondDiv':'', 'headerDiv':'','mainDiv':'', 'footerDiv':''}"/>
+    <aura:attribute name="fieldLabelMap" type="Map" default="{}"/>	
+    
+    <force:recordData aura:id="forceRecord"
+                      recordId="{!v.recordId}"
+                      targetFields="{!v.targetFields}"
+                      fields="Id, Name, AgouraFree__Project__c, AgouraFree__Type__c, AgouraFree__Target_Date__c, AgouraFree__Progress__c, AgouraFree__Comments__c, 
+                              AgouraFree__Probability__c, AgouraFree__Impact__c, AgouraFree__Status__c, AgouraFree__Response__c, AgouraFree__URL__c, 
+                              AgouraFree__Swim_Lane__c, AgouraFree__RACI__c, CreatedDate, LastModifiedDate, AgouraFree__Title__c, AgouraFree__Start_Date__c"
+                      mode="EDIT" 
+                      layoutType="FULL"/>
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+    <c:PickListValues sObjectName="AgouraFree__ProjectItem__c" fieldName="AgouraFree__Type__c" picklistValues="{!v.typePicklistValues}" />
+    <c:PickListValues sObjectName="AgouraFree__ProjectItem__c" fieldName="AgouraFree__Status__c" picklistValues="{!v.statusPicklistValues}" />
+    <c:PickListValues sObjectName="AgouraFree__ProjectItem__c" fieldName="AgouraFree__Probability__c" picklistValues="{!v.probabilityPicklistValues}" />
+    <c:PickListValues sObjectName="AgouraFree__ProjectItem__c" fieldName="AgouraFree__Impact__c" picklistValues="{!v.impactPicklistValues}" />
+    <c:PickListValues sObjectName="AgouraFree__ProjectItem__c" fieldName="AgouraFree__RACI__c" picklistValues="{!v.raciPicklistValues}" />
+    
+    <div aura:id="editDialog" role="dialog" tabindex="-1" aria-labelledby="header43" class="{!v.formStyle.topDiv}" 
+         onmouseover="{!c.updateWebPageTitle}">
+        <div class="{!v.formStyle.secondDiv}">
+            <div class="{!v.formStyle.headerDiv}">
+                <h2 class="slds-text-heading--medium">{!v.modalContext + ' ' + v.targetFields.AgouraFree__Type__c}</h2>
+            </div>            
+            <div class="{!v.formStyle.mainDiv}">
+                <!-- all -->
+                <aura:if isTrue="{!v.recordId == null}">                    
+                    <div class="slds-size--1-of-2 slds-p-around_x-small" style="white-space:pre-wrap">                    
+                        <div class="slds-text-title slds-m-top_xxx-small slds-truncate slds-align-bottom">
+                            <c:Lookup aura:id="propProject" selection="{!v.projectSelection}" onSearch="{!c.lookupProjectSearch}" 
+                                           label="Project" placeholder="Search Projects" isMultiEntry="false" isRequired="true"/>
+                        </div>
+                    </div>  
+                    <lightning:select aura:id="propType" value="{!v.targetFields.AgouraFree__Type__c}" 
+                                      label="{!v.fieldLabelMap.AgouraFree__Type__c}" required="true" class="slds-size--1-of-2 slds-p-around_x-small">
+                        <aura:iteration items="{!v.typePicklistValues}" var="item">
+                            <option value="{!item}" selected="{!if(v.targetFields.AgouraFree__Type__c==item,'selected','')}">{!item}</option>
+                        </aura:iteration>
+                    </lightning:select> 
+                    <aura:set attribute="else">
+                        <div class="slds-size--1-of-2 slds-p-around_x-small" style="white-space:pre-wrap">                    
+                            <p class="slds-text-title slds-m-bottom_xx-small">Project</p>
+                            <div id="{! globalId + '_selection' }" role="listbox" aria-orientation="horizontal">
+                                <c:LookupDisplay selection="{!v.projectSelection}" />
+                            </div>
+                        </div>
+                        <div class="slds-size--1-of-2 slds-p-around_x-small" style="white-space:pre-wrap">                    
+                            <div class="slds-size_1-of-1" style="white-space:pre-wrap">
+                                <p class="slds-text-title slds-m-bottom_x-small slds-p-bottom_xxx-small">{!v.fieldLabelMap.AgouraFree__Type__c}</p>
+                                <span>{!v.targetFields.AgouraFree__Type__c}</span>
+                            </div>
+                        </div>                        
+                    </aura:set>
+                </aura:if>
+                
+                <!-- all except isUserType -->
+                <aura:if isTrue="{!v.isUserType == false}"> 
+                    <lightning:input aura:id="propTitle" maxlength="255" required="true" value="{!v.targetFields.AgouraFree__Title__c}" 
+                                     label="{!v.fieldLabelMap.AgouraFree__Title__c}" class="slds-size--2-of-2 slds-p-around_x-small" /> 
+                </aura:if>
+                
+                <!-- Project Goal & Project Milestone -->
+                <aura:if isTrue="{!or(v.targetFields.AgouraFree__Type__c == 'Project Goal', v.targetFields.AgouraFree__Type__c == 'Project Milestone')}">
+                    <lightning:input aura:id="propStartDate" value="{!v.targetFields.AgouraFree__Start_Date__c}" 
+                                     label="{!v.fieldLabelMap.AgouraFree__Start_Date__c}" type="date" 
+                                     class="{!if(v.targetFields.AgouraFree__Type__c=='Project Goal','slds-size--1-of-2 slds-p-around_x-small fullWidth','slds-hide')}" /> 
+                    <lightning:input aura:id="propTargetDate" value="{!v.targetFields.AgouraFree__Target_Date__c}" 
+                                     label="{!v.fieldLabelMap.AgouraFree__Target_Date__c}" type="date" class="slds-size--1-of-2 slds-p-around_x-small fullWidth" /> 
+                    <lightning:input aura:id="propProgress" max="999" value="{!v.targetFields.AgouraFree__Progress__c}" 
+                                     label="{!v.fieldLabelMap.AgouraFree__Progress__c}" type="number" formatter="percent-fixed"
+                                     class="{!if(v.targetFields.AgouraFree__Type__c=='Project Goal','slds-size--2-of-2 slds-p-around_x-small','slds-size--1-of-2 slds-p-around_x-small')}" /> 
+                    <lightning:textarea aura:id="propComments" maxlength="131072" value="{!v.targetFields.AgouraFree__Comments__c}" 
+                                        label="{!v.fieldLabelMap.AgouraFree__Comments__c}" class="slds-size--2-of-2 slds-p-around_x-small bigly"/>  
+                </aura:if>
+                
+                <!-- Project Link -->
+                <aura:if isTrue="{!or(v.targetFields.AgouraFree__Type__c == 'Project Link')}">   
+                    <lightning:input aura:id="propURL" maxlength="255" value="{!v.targetFields.AgouraFree__URL__c}" required="true"
+                                     label="{!v.fieldLabelMap.AgouraFree__URL__c}" type="url" placeholder="example: https://www.salesforce.com" 
+                                     class="slds-size--2-of-2 slds-p-around_x-small" /> 
+                    <div class="slds-size--2-of-2 slds-p-around_x-small" style="white-space:pre-wrap">                    
+                        <div class="slds-text-title slds-truncate slds-align-bottom">
+                            <c:Lookup aura:id="propOwner" selection="{!v.userSelection}" onSearch="{!c.lookupLinkOwnerSearch}" 
+                                           label="Project Link Owner" placeholder="Search Users" isMultiEntry="false" isRequired="false"/>
+                        </div>
+                    </div>
+                </aura:if>
+                
+                <!-- Project Risk -->
+                <aura:if isTrue="{!v.targetFields.AgouraFree__Type__c == 'Project Risk'}">    
+                    <lightning:select aura:id="propStatus" value="{!v.targetFields.AgouraFree__Status__c}" 
+                                      label="{!v.fieldLabelMap.AgouraFree__Status__c}" class="slds-size--2-of-2 slds-p-around_x-small">
+                        <aura:iteration items="{!v.statusPicklistValues}" var="item">
+                            <option value="{!item}" selected="{!if(v.targetFields.AgouraFree__Status__c==item,'selected','')}">{!item}</option>
+                        </aura:iteration>
+                    </lightning:select> 
+                    <lightning:select aura:id="propProbability" value="{!v.targetFields.AgouraFree__Probability__c}" 
+                                      label="{!v.fieldLabelMap.AgouraFree__Probability__c}" class="slds-size--1-of-2 slds-p-around_x-small">
+                        <option value="">--None--</option>
+                        <aura:iteration items="{!v.probabilityPicklistValues}" var="item">
+                            <option value="{!item}" selected="{!if(v.targetFields.AgouraFree__Probability__c==item,'selected','')}">{!item}</option>
+                        </aura:iteration>
+                    </lightning:select> 
+                    <lightning:select aura:id="propImpact" value="{!v.targetFields.AgouraFree__Impact__c}" 
+                                      label="{!v.fieldLabelMap.AgouraFree__Impact__c}" class="slds-size--1-of-2 slds-p-around_x-small">
+                        <option value="">--None--</option>
+                        <aura:iteration items="{!v.impactPicklistValues}" var="item">
+                            <option value="{!item}" selected="{!if(v.targetFields.AgouraFree__Impact__c==item,'selected','')}">{!item}</option>
+                        </aura:iteration>
+                    </lightning:select>  
+                    <lightning:textarea aura:id="propDescription" maxlength="131072" value="{!v.targetFields.AgouraFree__Description__c}" 
+                                        label="{!v.fieldLabelMap.AgouraFree__Description__c}" class="slds-size--2-of-2 slds-p-around_x-small bigly"/> 
+                    <lightning:textarea aura:id="propResponse" maxlength="131072" value="{!v.targetFields.AgouraFree__Response__c}" 
+                                        label="{!v.fieldLabelMap.AgouraFree__Response__c}" class="slds-size--2-of-2 slds-p-around_x-small bigly"/>  
+                </aura:if>
+                
+                <!-- Project Stakeholders -->
+                <aura:if isTrue="{!v.isUserType}">                             
+                    <div class="slds-size--1-of-2 slds-p-around_x-small" style="white-space:pre-wrap">                    
+                        <div class="slds-text-title slds-truncate slds-align-bottom">
+                            <c:Lookup aura:id="propUser" selection="{!v.userSelection}" onSearch="{!c.lookupUserSearch}" 
+                                           label="{!v.fieldLabelMap.AgouraFree__User__c}" placeholder="Search Users" isMultiEntry="false" isRequired="true"/>
+                        </div>
+                    </div>
+                    <aura:if isTrue="{!v.targetFields.AgouraFree__Type__c == 'Project Team Member'}">
+                        <div aura:id="fieldSwimLane" class="slds-size--1-of-2">
+                            <lightning:select aura:id="propSwimLane" value="{!v.targetFields.AgouraFree__Swim_Lane__c}" 
+                                              label="Swim Lane" class="slds-size--1-of-1 slds-p-around_x-small">
+                                <option value="">--None--</option>
+                                <aura:iteration items="{!v.projectSwimLanesList}" var="item">
+                                    <option value="{!item.id}" selected="{!if(v.targetFields.AgouraFree__Swim_Lane__c==item.id,'selected','')}">{!item.title}</option>
+                                </aura:iteration>
+                            </lightning:select> 
+                        </div>
+                    </aura:if>
+                    <aura:if isTrue="{!v.targetFields.AgouraFree__Type__c == 'Project Stakeholder'}">
+                        <div aura:id="fieldRACI" class="slds-size--1-of-2">
+                            <lightning:select aura:id="propRACI" value="{!v.targetFields.AgouraFree__RACI__c}" 
+                                              label="{!v.fieldLabelMap.AgouraFree__RACI__c}" class="slds-size--1-of-1 slds-p-around_x-small">
+                                <option value="">--None--</option>
+                                <aura:iteration items="{!v.raciPicklistValues}" var="item">
+                                    <option value="{!item}" selected="{!if(v.targetFields.AgouraFree__RACI__c==item,'selected','')}">{!item}</option>
+                                </aura:iteration>
+                            </lightning:select>
+                        </div>
+                    </aura:if>
+                </aura:if>
+                
+                <!-- all -->
+                <aura:if isTrue="{!v.recordId != null}">
+                    <div class="slds-col slds-size_1-of-2 slds-p-around_x-small">
+                        <p class="slds-text-title slds-m-bottom_xx-small">Created By</p>
+                        <div id="{! globalId + '_selection' }" role="listbox" aria-orientation="horizontal">
+                            <c:LookupDisplay selection="{!v.createdByList}" />
+                            <span class="slds-m-top_xxx-small slds-p-top_xx-small" style="display:inline-block;vertical-align:top;"> on <ui:outputDateTime value="{!v.targetFields.CreatedDate}" /></span>
+                        </div>
+                    </div>
+                    <div class="slds-col slds-size_1-of-2 slds-p-around_x-small">
+                        <p class="slds-text-title slds-m-bottom_xx-small">Last Modified By</p>
+                        <div id="{! globalId + '_selection' }" role="listbox" aria-orientation="horizontal">
+                            <c:LookupDisplay selection="{!v.lastModifiedByList}" />
+                            <span class="slds-m-top_xxx-small slds-p-top_xx-small" style="display:inline-block;vertical-align:top;"> on <ui:outputDateTime value="{!v.targetFields.LastModifiedDate}" /></span>
+                        </div>
+                    </div>   
+                </aura:if>   
+            </div>
+            <div class="{!v.formStyle.footerDiv}"> 
+                <div style="float:right">
+                    <lightning:button variant="neutral" label="Cancel" onclick="{!c.cancelDialog}"/>
+                    <aura:if isTrue="{!and(empty(v.recordError),v.hasEditAccess == true)}">
+                        <lightning:button variant="brand" label="Save" onclick="{!c.saveRecord}"/>
+                    </aura:if>
+                </div>
+            </div>
+        </div>
+    </div>
+    <aura:if isTrue="{!$Browser.formFactor == 'DESKTOP'}">
+        <div aura:id="overlay" class="slds-backdrop slds-backdrop--open"></div>
+    </aura:if>
+</aura:component>

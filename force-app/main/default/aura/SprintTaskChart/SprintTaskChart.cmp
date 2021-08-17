@@ -1,0 +1,81 @@
+<aura:component implements="force:hasRecordId">    
+    <ltng:require scripts="{!$Resource.chartjs}" afterScriptsLoaded="{!c.scriptsLoaded}" />    
+    <aura:attribute name="sprintTaskItems" type="ProjectTask__c[]" default="[]"/>    
+    <aura:handler name="change" value="{!v.sprintTaskItems}" action="{!c.projectTaskItemsChangeHandler}"/>
+    
+    <lightning:layout >
+        <lightning:layoutItem >
+            <div class="chart">
+                <canvas aura:id="chart" height="60" width="60"></canvas>
+            </div>
+        </lightning:layoutItem>
+        <lightning:layoutItem class="slds-text-body_small">
+            <lightning:layout verticalAlign="center">
+                <lightning:layoutItem padding="horizontal-small">
+                    <div class="legend open"/>
+                </lightning:layoutItem>
+                <lightning:layoutItem >
+                    Open
+                </lightning:layoutItem>
+            </lightning:layout>
+            <lightning:layout verticalAlign="center">
+                <lightning:layoutItem padding="horizontal-small">
+                    <div class="legend inprogress"/>
+                </lightning:layoutItem>
+                <lightning:layoutItem >
+                    In Progress
+                </lightning:layoutItem>
+            </lightning:layout>
+            <lightning:layout verticalAlign="center">
+                <lightning:layoutItem padding="horizontal-small">
+                    <div class="legend readytotest"/>
+                </lightning:layoutItem>
+                <lightning:layoutItem >
+                    Ready to Test
+                </lightning:layoutItem>
+            </lightning:layout>
+            <lightning:layout verticalAlign="center">
+                <lightning:layoutItem padding="horizontal-small">
+                    <div class="legend testing"/>
+                </lightning:layoutItem>
+                <lightning:layoutItem >
+                    Testing
+                </lightning:layoutItem>
+            </lightning:layout>
+        </lightning:layoutItem>
+        <lightning:layoutItem class="slds-text-body_small">
+            <lightning:layout verticalAlign="center">
+                <lightning:layoutItem padding="horizontal-small">
+                    <div class="legend readytodeploy"/>
+                </lightning:layoutItem>
+                <lightning:layoutItem >
+                    Ready to Deploy
+                </lightning:layoutItem>
+            </lightning:layout>
+            <lightning:layout verticalAlign="center">
+                <lightning:layoutItem padding="horizontal-small">
+                    <div class="legend canceled"/>
+                </lightning:layoutItem>
+                <lightning:layoutItem >
+                    Canceled
+                </lightning:layoutItem>
+            </lightning:layout>
+            <lightning:layout verticalAlign="center">
+                <lightning:layoutItem padding="horizontal-small">
+                    <div class="legend resolved"/>
+                </lightning:layoutItem>
+                <lightning:layoutItem >
+                    Resolved
+                </lightning:layoutItem>
+            </lightning:layout>
+            <lightning:layout verticalAlign="center">
+                <lightning:layoutItem padding="horizontal-small">
+                    <div class="legend done"/>
+                </lightning:layoutItem>
+                <lightning:layoutItem >
+                    Done
+                </lightning:layoutItem>
+            </lightning:layout>
+        </lightning:layoutItem>
+    </lightning:layout>        
+</aura:component>

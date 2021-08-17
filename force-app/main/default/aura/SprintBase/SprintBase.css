@@ -1,0 +1,98 @@
+.THIS .innerPadding {
+    padding: 0 7px 14px;
+}
+.THIS .outerPadding {
+    padding: 0 7px;
+}
+.THIS .manualButton:hover {
+    text-decoration: none;
+}
+.THIS .agouraIcon {
+    background-color: rgba(0,112,192,.8);
+}
+.THIS .DropDownRight > .slds-dropdown_left {
+    transform: translateX(0) !important;
+}
+.THIS .DropDownRight > button {
+	border-right-width: 0;
+}
+.THIS .DropDownRight > .slds-dropdown_left > ul > li > a > span {
+    padding:0 1.5em;
+}
+.THIS .FirstButtonStyle {
+    border-radius: .25rem 0 0 .25rem;
+}
+.THIS .LastButtonStyle {
+    border-radius: 0 .25rem .25rem 0;
+}
+.THIS .header {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+}
+.THIS .headerItem {
+    flex-grow: 1;    
+}
+.THIS .clearLeft {
+    clear:left;
+}
+
+/* Sprint Task List */
+.THIS .drop-zone {
+	box-sizing: border-box;
+	min-height: 200px;
+    border-width: 2px;
+    border-style: dashed;
+    border-color: transparent;
+}
+.THIS .drop-zone.active {
+    border-color: #027FB3;
+}
+.THIS .swimLaneTitle {
+    background-color: rgba(0,112,192,1);
+    color:white;
+    font-weight:bold;
+    border-radius: .5rem .5rem 0 0;
+}
+.THIS .swimLaneTitle > lightning-icon > lightning-primitive-icon > svg {
+    height:20px;
+    width:20px;
+}
+
+.THIS .kanbanTitle {    
+    text-align: center;   
+    background-color: rgb(250, 250, 249);
+    padding: .25rem .5rem;
+    font-family: 'Salesforce Sans',Arial,sans-serif;
+    font-weight: 700;
+    font-size: .8125rem;
+    text-transform: uppercase;
+    letter-spacing: .0625rem;
+    color: rgb(81, 79, 77);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Backlog */
+.THIS .slds-icon-custom-custom39 {
+    background-color: rgba(0,112,192,.8);
+}
+.THIS .slds-icon-standard-task {
+    background-color: rgba(0,112,192,.8);
+}
+.THIS .projectTaskBacklog {
+    cursor: move;
+}
+.THIS .hideBacklogIcon {
+    border-radius: 0 .25rem .25rem 0;
+}
+.THIS .shrinkMarginTop {
+   margin-top: 0 !important;
+}
+.THIS .taskList {
+    min-height: 2rem;
+}
+.THIS .littleSmaller {
+    font-size: .8125rem;
+}

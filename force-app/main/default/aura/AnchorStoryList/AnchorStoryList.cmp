@@ -1,0 +1,3 @@
+<aura:component implements="lightning:actionOverride"> 
+    <c:ObjectListView viewName="Anchor Stories" iconName="standard:task"/>
+</aura:component>

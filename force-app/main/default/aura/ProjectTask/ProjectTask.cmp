@@ -1,0 +1,534 @@
+<aura:component implements="lightning:actionOverride,flexipage:availableForRecordHome,force:hasRecordId" 
+                controller="ProjectTaskControllerExt" access="global">
+    <aura:attribute name="record" type="Id"/>
+    <aura:attribute name="targetFields" type="ProjectTask__c"/>
+    <aura:attribute name="recordError" type="String" default=""/>
+    <aura:attribute name="hasEditAccess" type="boolean" default="false"/>    
+    <aura:attribute name="hasDeleteAccess" type="boolean" default="false"/>
+    <aura:attribute name="showCompleteButton" type="boolean" default="false"/> 
+    <aura:attribute name="showConfirmDeleteModal" type="boolean" default="false"/>
+    <aura:attribute name="showConfirmDeleteToast" type="boolean" default="false"/>
+    <aura:attribute name="showConfirmModal" type="boolean" default="false"/>
+    <aura:attribute name="showConfirmTitle" type="String"/>
+    <aura:attribute name="showConfirmAsk" type="String"/>
+    <aura:attribute name="moveOptions" type="List" default="[{'label': 'Create a Copy', 'value': 'Copy'},
+                                                            {'label': 'Move Project Task', 'value': 'Move'}]"/>
+    <aura:attribute name="projectSelection" type="List" default="[]"/>
+    <aura:attribute name="moveProjectSelection" type="List" default="[]"/> 
+    <aura:attribute name="cloneProjectSelection" type="List" default="[]"/> 
+    <aura:attribute name="sprintSelection" type="List" default="[]"/>
+    <aura:attribute name="masterTaskSelection" type="List" default="[]"/>
+    <aura:attribute name="subTasksSelection" type="List" default="[]"/>
+    <aura:attribute name="assignedToSelection" type="List" default="[]"/>
+    <aura:attribute name="createdByList" type="List" default="[]"/>	
+    <aura:attribute name="lastModifiedByList" type="List" default="[]"/>
+    <aura:attribute name="accountList" type="List" default="[]"/>	
+    <aura:attribute name="tagList" type="List" default="[]"/>
+    <aura:attribute name="timeEst" type="String"/>
+    <aura:attribute name="timeLogged" type="String"/>
+    <aura:attribute name="timeRemaining" type="String"/>
+    <aura:attribute name="windowTitle" type="String"/>    	
+    <aura:attribute name="chatterEnabled" type="boolean" default="false"/>
+    <aura:attribute name="fieldLabelMap" type="Map" default="{}"/>	
+    
+    <force:recordData aura:id="record"
+                      recordId="{!v.recordId}"
+                      targetFields="{!v.targetFields}"
+                      recordUpdated="{!c.handleRecordUpdated}"
+                      fields="Id, Name, AgouraFree__Title__c, AgouraFree__Task_Number__c, AgouraFree__Description__c, AgouraFree__Type__c, AgouraFree__Status__c, 
+                              AgouraFree__Points__c, AgouraFree__Sprint__c, AgouraFree__Reported_By__c, AgouraFree__Assigned_To__c, AgouraFree__Reported_Date__c, 
+                              AgouraFree__Blocked__c, AgouraFree__Project__c, AgouraFree__Swim_Lane__r.AgouraFree__Title__c, AgouraFree__Bug_Type__c, 
+                              AgouraFree__Value__c, AgouraFree__Priority__c, AgouraFree__Order__c, AgouraFree__Due_Date__c, AgouraFree__Accept__c, 
+                              AgouraFree__Master_Task__c, AgouraFree__Start_Date__c, AgouraFree__Affected_Version__c, AgouraFree__End_Date__c, 
+                              AgouraFree__Version__c, AgouraFree__Time_Estimate__c, AgouraFree__Fix_Version__c, AgouraFree__Time_Logged__c, 
+                              AgouraFree__Resolution__c, AgouraFree__Time_Remaining__c, AgouraFree__Resolved_Date__c, AgouraFree__Components__c, 
+                              AgouraFree__Dependencies__c, AgouraFree__Comments__c, AgouraFree__URL__c, CreatedDate, LastModifiedDate"
+                      mode="VIEW" 
+                      layoutType="FULL"/>
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+    
+    <!-- Display Lightning Data Service errors, if any -->
+    <aura:if isTrue="{!not(empty(v.recordError))}">
+        <div class="recordError">
+            <ui:message title="Error" severity="error" closable="true">
+                {!v.recordError}
+            </ui:message>
+        </div>
+    </aura:if>
+    
+    <!-- Confirm Modal -->
+    <aura:if isTrue="{!v.showConfirmModal}">
+        <div role="dialog" tabindex="-1" aria-labelledby="header99" class="slds-modal slds-fade-in-open ">
+            <div class="slds-modal__container">
+                <div class="slds-modal__header">
+                    <button class="slds-button slds-modal__close slds-button--icon-inverse" title="Close" onclick="{!c.closeConfirm}">
+                        X
+                        <span class="slds-assistive-text">Close</span>
+                    </button>
+                    <h2 id="header99" class="slds-text-heading--medium">{!v.showConfirmTitle}</h2>
+                </div>   
+                <div class="slds-modal__content slds-p-around--medium">
+                    <div class="slds-align_absolute-center" style="min-height: 5rem;">
+                        <aura:if isTrue="{!v.showConfirmTitle == 'Move Project Task'}">
+                            <div class="slds-align_absolute-center">
+                                <span class="slds-p-around_medium">{!v.showConfirmAsk}<br /><br />  
+                                    <c:Lookup aura:id="propMoveProject" selection="{!v.moveProjectSelection}" onSearch="{!c.lookupProjectSearchMove}" 
+                                              label="Project" placeholder="Search Projects" isMultiEntry="false" isRequired="true"/> 
+                                </span>
+                            </div>
+                        </aura:if>   
+                        <aura:if isTrue="{!v.showConfirmTitle == 'Clone Project Task'}">
+                            <div class="slds-align_absolute-center">
+                                <span class="slds-p-around_medium">{!v.showConfirmAsk}<br /><br />  
+                                    <c:Lookup aura:id="propCloneProject" selection="{!v.cloneProjectSelection}" onSearch="{!c.lookupProjectSearchClone}" 
+                                              label="Project" placeholder="Search Projects" isMultiEntry="false" isRequired="true"/> 
+                                </span>
+                            </div>
+                        </aura:if> 
+                    </div>
+                </div>
+                <div class="slds-modal__footer">
+                    <button class="slds-button slds-button--neutral" onclick="{!c.closeConfirm}">Cancel</button>
+                    <aura:if isTrue="{!v.showConfirmTitle == 'Move Project Task'}">
+                        <button class="slds-button slds-button--brand" onclick="{!c.moveRecord}">Move</button>
+                    </aura:if> 
+                    <aura:if isTrue="{!v.showConfirmTitle == 'Clone Project Task'}">
+                        <button class="slds-button slds-button--brand" onclick="{!c.cloneRecord}">Clone</button>
+                    </aura:if>                    
+                </div>
+            </div>
+        </div>
+        <div class="slds-backdrop slds-backdrop--open"></div>
+    </aura:if>
+    
+    <!-- Confirm Delete Modal -->
+    <aura:if isTrue="{!v.showConfirmDeleteModal}">
+        <div role="dialog" tabindex="-1" aria-labelledby="header99" class="slds-modal slds-fade-in-open ">
+            <div class="slds-modal__container">
+                <div class="slds-modal__header">
+                    <button class="slds-button slds-modal__close slds-button--icon-inverse" title="Close" onclick="{!c.closeConfirmDelete}">
+                        X
+                        <span class="slds-assistive-text">Close</span>
+                    </button>
+                    <h2 id="header99" class="slds-text-heading--medium">Delete Project Task</h2>
+                </div>   
+                <div class="slds-modal__content slds-p-around--medium">
+                    <div class="slds-align_absolute-center" style="height: 5rem;">
+                        <lightning:icon size="medium" iconName="action:delete" alternativeText="Confirm Delete" />
+                        <span class="slds-p-around_medium">Are you sure you want to delete this Project Task?</span>
+                    </div>
+                </div>
+                <div class="slds-modal__footer">
+                    <button class="slds-button slds-button--neutral" onclick="{!c.closeConfirmDelete}" >Cancel</button>
+                    <button class="slds-button slds-button--brand" onclick="{!c.deleteRecord}">Delete</button>
+                </div>
+            </div>
+        </div>
+        <div class="slds-backdrop slds-backdrop--open"></div>
+    </aura:if>
+    
+    <article id="forceRecord" onmouseover="{!c.updateWebPageTitle}">
+        <div class="slds-card slds-m-bottom_small">
+            <header class="slds-p-horizontal_medium">   
+                <lightning:layout pullToBoundary="small" multipleRows="True">                            
+                    <lightning:layoutItem flexibility="auto" size="12" largeDeviceSize="8" class="slds-p-horizontal_small"> 
+                        <div class="slds-size_1-of-1 slds-p-bottom_small">
+                            <div class="slds-media__figure slds-p-top_medium" style="float:left;">
+                                <lightning:icon iconName="standard:task" alternativeText="Project Task" class="agouraIcon"/>
+                            </div>
+                            <div class="slds-media__body slds-p-top_small">
+                                <p>Project Task • {!v.targetFields.Name}</p>  
+                                <h1 class="slds-page-header__title slds-align-bottom" 
+                                    title="{!v.targetFields.AgouraFree__Title__c}">
+                                    <span class="{!(v.targetFields.AgouraFree__Blocked__c ? 'blocked' : '') }">
+                                        {!v.targetFields.AgouraFree__Task_Number__c}&nbsp;{!v.targetFields.AgouraFree__Title__c}
+                                    </span>
+                                </h1>
+                            </div>
+                        </div>
+                    </lightning:layoutItem>
+                    <lightning:layoutItem flexibility="auto" size="12" largeDeviceSize="4" class=" slds-p-horizontal_small"> 
+                        <div class="slds-size_1-of-1">
+                            <div class=" slds-p-bottom_small slds-p-top_medium" style="float:right">
+                                <lightning:buttonGroup>
+                                    <aura:if isTrue="{!and(empty(v.recordError),v.hasEditAccess == true)}">
+                                        <lightning:button variant="neutral" label="Edit" onclick="{!c.editRecord}" />
+                                        <aura:if isTrue="{!v.showCompleteButton == true}">                                            
+                                            <lightning:button variant="neutral" label="Complete" onclick="{!c.completeWork}" />
+                                        </aura:if>
+                                        <aura:if isTrue="{!v.targetFields.AgouraFree__Status__c == 'Open'}">
+                                            <lightning:button variant="neutral" label="Start" onclick="{!c.startWork}" />
+                                        </aura:if>
+                                        <lightning:buttonMenu alternativeText="Show menu" class="slds-button_last DropDownRight" onselect="{!c.handleMenuSelect}">
+                                            <aura:if isTrue="{!and(empty(v.recordError),v.hasEditAccess == true)}">
+                                                <lightning:menuItem label="Assign to Me" value="Assign to Me" />
+                                                <lightning:menuItem label="Clone" value="Clone" />
+                                                <aura:if isTrue="{!and(empty(v.recordError),v.hasDeleteAccess == true)}">
+                                                    <lightning:menuItem label="Delete" value="Delete" />
+                                                </aura:if>
+                                                <lightning:menuItem label="Move to Another Project" value="Move" />
+                                                <lightning:menuItem label="New Project Task" value="New Project Task"
+                                                                    href="{!'/lightning/o/AgouraFree__ProjectTask__c/new?AgouraFree__project='+v.targetFields.AgouraFree__Project__c}" />                                        
+                                            </aura:if>
+                                        </lightning:buttonMenu>
+                                    </aura:if>
+                                </lightning:buttonGroup>
+                            </div>
+                        </div>
+                    </lightning:layoutItem>
+                </lightning:layout>
+            </header>
+        </div>
+        
+        <!-- Summary -->
+        <lightning:layout pullToBoundary="small" multipleRows="True" class="outerPadding">                            
+            <lightning:layoutItem flexibility="auto" size="12" largeDeviceSize="4" class="innerPadding">
+                <lightning:card title="{!v.fieldLabelMap.AgouraFree__Summary__c}">                           
+                    <div class="slds-border_top slds-m-horizontal_x-small slds-p-around_x-small minHeight">
+                        <div class="slds-grid slds-gutters slds-p-top_xxx-small">
+                            <div class="slds-col slds-size_1-of-1">                       
+                                <div class="slds-size_1-of-1 slds-p-bottom_medium" style="min-height:14.5vh; white-space:pre-wrap;">
+                                    <p class="slds-text-title slds-m-bottom_xx-small">{!v.fieldLabelMap.AgouraFree__Description__c}</p>
+                                    <span><lightning:formattedRichText value="{!v.targetFields.AgouraFree__Description__c}"></lightning:formattedRichText></span>
+                                </div>
+                            </div>
+                        </div> 
+                        <div class="slds-grid slds-gutters slds-p-top_xxx-small">
+                            <div class="slds-col slds-size_1-of-1">                       
+                                <div class="slds-size_1-of-1 slds-p-bottom_medium" style="white-space:pre-wrap;">
+                                    <p class="slds-text-title slds-m-bottom_xx-small">{!v.fieldLabelMap.AgouraFree__URL__c}</p>
+                                    <span><lightning:formattedUrl value="{!v.targetFields.AgouraFree__URL__c}" />&nbsp;</span>
+                                </div>
+                            </div>
+                        </div>                        
+                        <div class="slds-grid slds-gutters slds-p-top_xxx-small">
+                            <div class="slds-col slds-size_1-of-2">
+                                <div class="slds-size_1-of-1 slds-p-bottom_medium" style="white-space:pre-wrap">
+                                    <p class="slds-text-title slds-m-bottom_xx-small">{!v.fieldLabelMap.AgouraFree__Reported_Date__c}</p>
+                                    <span><ui:outputDate value="{!v.targetFields.AgouraFree__Reported_Date__c}" /></span>
+                                </div>
+                            </div>
+                            <div class="slds-col slds-size_1-of-2">
+                                <div class="slds-size_1-of-1 slds-p-bottom_medium" style="white-space:pre-wrap">
+                                    <p class="slds-text-title slds-m-bottom_xx-small">{!v.fieldLabelMap.AgouraFree__Reported_By__c}</p>
+                                    <span>{!v.targetFields.AgouraFree__Reported_By__c}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="slds-grid slds-gutters slds-p-top_xxx-small">
+                            <div class="slds-col slds-size_1-of-2">
+                                <div class="slds-size_1-of-1 slds-p-bottom_medium" style="white-space:pre-wrap">
+                                    <p class="slds-text-title slds-m-bottom_xx-small">{!v.fieldLabelMap.AgouraFree__Type__c}</p>
+                                    <span>{!v.targetFields.AgouraFree__Type__c}</span>
+                                </div>
+                            </div>
+                            <div class="slds-col slds-size_1-of-2">
+                                <div class="slds-size_1-of-1 slds-p-bottom_medium" style="white-space:pre-wrap">
+                                    <p class="slds-text-title slds-m-bottom_xx-small">{!v.fieldLabelMap.AgouraFree__Status__c}</p>
+                                    <span>{!v.targetFields.AgouraFree__Status__c}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="slds-grid slds-gutters slds-p-top_xxx-small">
+                            <div class="slds-col slds-size_1-of-2">
+                                <div class="slds-size_1-of-1 slds-p-bottom_medium" style="white-space:pre-wrap">
+                                    <p class="slds-text-title slds-m-bottom_xx-small">{!v.fieldLabelMap.AgouraFree__Points__c}</p>
+                                    <span>{!v.targetFields.AgouraFree__Points__c}</span>
+                                </div>
+                            </div>
+                            <div class="slds-col slds-size_1-of-2">
+                                <div class="slds-size_1-of-1 slds-p-bottom_medium" style="white-space:pre-wrap">
+                                    <p class="slds-text-title slds-m-bottom_xx-small">{!v.fieldLabelMap.AgouraFree__Assigned_To__c}</p>
+                                    <div id="{! globalId + '_selection' }" role="listbox" aria-orientation="horizontal">
+                                        <c:LookupDisplay selection="{!v.assignedToSelection}" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="slds-grid slds-gutters slds-p-top_xxx-small">
+                            <div class="slds-col slds-size_1-of-1">
+                                <div class="slds-size_1-of-1 slds-p-bottom_medium">
+                                    <p class="{! 'slds-text-title slds-m-bottom_xx-small '+ (v.targetFields.AgouraFree__Blocked__c ? 'blocked' : '') }">
+                                        {!v.fieldLabelMap.AgouraFree__Blocked__c}
+                                    </p>
+                                    <ui:inputCheckbox value="{!v.targetFields.AgouraFree__Blocked__c}" disabled="true" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>  
+                </lightning:card>
+            </lightning:layoutItem>
+            
+            <!-- Product Owner -->
+            <lightning:layoutItem flexibility="auto" size="12" largeDeviceSize="4" class="innerPadding">
+                <lightning:card title="{!v.fieldLabelMap.AgouraFree__Product_Owner__c}">                           
+                    <div class="slds-border_top slds-m-horizontal_x-small slds-p-around_x-small minHeight">
+                        <div class="slds-grid slds-gutters slds-p-top_xxx-small">
+                            <div class="slds-col slds-size_1-of-2">
+                                <div class="slds-size_1-of-1 slds-p-bottom_medium" style="white-space:pre-wrap">
+                                    <p class="slds-text-title slds-m-bottom_xx-small">Project</p>
+                                    <div id="{! globalId + '_selection' }" role="listbox" aria-orientation="horizontal">
+                                        <c:LookupDisplay selection="{!v.projectSelection}" />
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="slds-col slds-size_1-of-2">
+                                <div class="slds-size_1-of-1 slds-p-bottom_medium" style="white-space:pre-wrap">
+                                    <p class="slds-text-title slds-m-bottom_xx-small">{!v.fieldLabelMap.AgouraFree__Swim_Lane__c}</p>
+                                    <span>{!v.targetFields.AgouraFree__Swim_Lane__r.AgouraFree__Title__c}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="slds-grid slds-gutters slds-p-top_xxx-small">
+                            <div class="slds-col slds-size_1-of-2">
+                                <div class="slds-size_1-of-1 slds-p-bottom_medium" style="white-space:pre-wrap">
+                                    <p class="slds-text-title slds-m-bottom_xx-small">{!v.fieldLabelMap.AgouraFree__Value__c}</p>
+                                    <span>{!v.targetFields.AgouraFree__Value__c}</span>
+                                </div>
+                            </div>
+                            <div class="slds-col slds-size_1-of-2">
+                                <div class="slds-size_1-of-1 slds-p-bottom_medium" style="white-space:pre-wrap">
+                                    <p class="slds-text-title slds-m-bottom_xx-small">{!v.fieldLabelMap.AgouraFree__Due_Date__c}</p>
+                                    <span><ui:outputDate value="{!v.targetFields.AgouraFree__Due_Date__c}" /></span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="slds-grid slds-gutters slds-p-top_xxx-small">
+                            <div class="slds-col slds-size_1-of-2">
+                                <div class="slds-size_1-of-1 slds-p-bottom_medium" style="white-space:pre-wrap">
+                                    <p class="slds-text-title slds-m-bottom_xx-small">{!v.fieldLabelMap.AgouraFree__Priority__c}</p>
+                                    <span>{!v.targetFields.AgouraFree__Priority__c}</span>
+                                </div>
+                            </div>
+                            <div class="slds-col slds-size_1-of-2">
+                                <div class="slds-size_1-of-1 slds-p-bottom_medium" style="white-space:pre-wrap">
+                                    <p class="slds-text-title slds-m-bottom_xx-small">{!v.fieldLabelMap.AgouraFree__Order__c}</p>
+                                    <span>{!v.targetFields.AgouraFree__Order__c}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <aura:if isTrue="{!v.targetFields.AgouraFree__Type__c == 'Bug'}">
+                            <div class="slds-grid slds-gutters slds-p-top_xxx-small">
+                                <div class="slds-col slds-size_1-of-1">
+                                    <div class="slds-size_1-of-1 slds-p-bottom_medium" style="white-space:pre-wrap">
+                                        <p class="slds-text-title slds-m-bottom_xx-small">{!v.fieldLabelMap.AgouraFree__Bug_Type__c}</p>
+                                        <span>{!v.targetFields.AgouraFree__Bug_Type__c}</span>
+                                    </div>
+                                </div>
+                            </div>      
+                        </aura:if>
+                        <div class="slds-grid slds-gutters slds-p-top_xxx-small">
+                            <div class="slds-col slds-size_1-of-1">
+                                <div class="slds-size_1-of-1 slds-p-bottom_medium" style="white-space:pre-wrap">
+                                    <p class="slds-text-title slds-m-bottom_xx-small">{!v.fieldLabelMap.AgouraFree__Accept__c}</p>
+                                    <span>{!v.targetFields.AgouraFree__Accept__c}</span>
+                                </div> 
+                                <div class="slds-size_1-of-1 slds-p-bottom_medium" style="white-space:pre-wrap">
+                                    <p class="slds-text-title slds-m-bottom_xx-small">Account</p>
+                                    <div id="{! globalId + '_selection' }" role="listbox" aria-orientation="horizontal">
+                                        <c:LookupDisplay selection="{!v.accountList}" />
+                                    </div>
+                                </div>
+                                <div class="slds-size_1-of-1 slds-p-bottom_medium" style="white-space:pre-wrap">
+                                    <p class="slds-text-title slds-m-bottom_xx-small">Tags</p>
+                                    <div id="{! globalId + '_selection' }" role="listbox" aria-orientation="horizontal">
+                                        <c:LookupDisplay selection="{!v.tagList}" showLink="false" />
+                                    </div>
+                                </div>                                    
+                                <div class="slds-size_1-of-1 slds-p-bottom_medium" style="white-space:pre-wrap">
+                                    <p class="slds-text-title slds-m-bottom_xx-small">Created By</p>
+                                    <div id="{! globalId + '_selection' }" role="listbox" aria-orientation="horizontal">
+                                        <c:LookupDisplay selection="{!v.createdByList}" />
+                                        <span class="slds-m-top_xxx-small slds-p-top_xx-small" style="display:inline-block;vertical-align:top;"> on <ui:outputDateTime value="{!v.targetFields.CreatedDate}" /></span>
+                                    </div>
+                                </div>                                   
+                                <div class="slds-size_1-of-1" style="white-space:pre-wrap">
+                                    <p class="slds-text-title slds-m-bottom_xx-small">Last Modified By</p>
+                                    <div id="{! globalId + '_selection' }" role="listbox" aria-orientation="horizontal">
+                                        <c:LookupDisplay selection="{!v.lastModifiedByList}" />
+                                        <span class="slds-m-top_xxx-small slds-p-top_xx-small" style="display:inline-block;vertical-align:top;"> on <ui:outputDateTime value="{!v.targetFields.LastModifiedDate}" /></span>
+                                    </div>  
+                                </div>  
+                            </div>
+                        </div>
+                    </div>  
+                </lightning:card>
+            </lightning:layoutItem>
+            
+            <!-- Project Team -->
+            <lightning:layoutItem flexibility="auto" size="12" largeDeviceSize="4" class="innerPadding">
+                <lightning:card title="{!v.fieldLabelMap.AgouraFree__Project_Team__c}">                           
+                    <div class="slds-border_top slds-m-horizontal_x-small slds-p-around_x-small minHeight">
+                        <div class="slds-grid slds-gutters slds-p-top_xxx-small">
+                            <div class="slds-col slds-size_1-of-2">
+                                <div class="slds-size_1-of-1 slds-p-bottom_medium" style="white-space:pre-wrap">
+                                    <p class="slds-text-title slds-m-bottom_xx-small">Sprint</p>
+                                    <div id="{! globalId + '_selection' }" role="listbox" aria-orientation="horizontal">
+                                        <c:LookupDisplay selection="{!v.sprintSelection}" />
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="slds-col slds-size_1-of-2">
+                                <div class="slds-size_1-of-1 slds-p-bottom_medium" style="white-space:pre-wrap">
+                                    <p class="slds-text-title slds-m-bottom_xx-small">{!v.fieldLabelMap.AgouraFree__Start_Date__c}</p>
+                                    <span><ui:outputDate value="{!v.targetFields.AgouraFree__Start_Date__c}" /></span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="slds-grid slds-gutters slds-p-top_xxx-small">
+                            <div class="slds-col slds-size_1-of-2">
+                                <div class="slds-size_1-of-1 slds-p-bottom_medium" style="white-space:pre-wrap">
+                                    <p class="slds-text-title slds-m-bottom_xx-small">{!v.fieldLabelMap.AgouraFree__Master_Task__c}</p>
+                                    <div id="{! globalId + '_selection' }" role="listbox" aria-orientation="horizontal">
+                                        <c:LookupDisplay selection="{!v.masterTaskSelection}" />
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="slds-col slds-size_1-of-2">
+                                <div class="slds-size_1-of-1 slds-p-bottom_medium" style="white-space:pre-wrap">
+                                    <p class="slds-text-title slds-m-bottom_xx-small">{!v.fieldLabelMap.AgouraFree__End_Date__c}</p>
+                                    <span><ui:outputDate value="{!v.targetFields.AgouraFree__End_Date__c}" /></span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="slds-grid slds-gutters slds-p-top_xxx-small">
+                            <div class="slds-col slds-size_1-of-2">
+                                <div class="slds-size_1-of-1 slds-p-bottom_medium" style="white-space:pre-wrap">
+                                    <p class="slds-text-title slds-m-bottom_xx-small">{!v.fieldLabelMap.AgouraFree__Affected_Version__c}</p>
+                                    <span>{!v.targetFields.AgouraFree__Affected_Version__c}</span>
+                                </div>
+                            </div>
+                            <div class="slds-col slds-size_1-of-2">
+                                <div class="slds-size_1-of-1 slds-p-bottom_medium" style="white-space:pre-wrap">
+                                    <p class="slds-text-title slds-m-bottom_xx-small">{!v.fieldLabelMap.AgouraFree__Time_Estimate__c}</p>
+                                    <span>{!v.timeEst}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="slds-grid slds-gutters slds-p-top_xxx-small">
+                            <div class="slds-col slds-size_1-of-2">
+                                <div class="slds-size_1-of-1 slds-p-bottom_medium" style="white-space:pre-wrap">
+                                    <p class="slds-text-title slds-m-bottom_xx-small">{!v.fieldLabelMap.AgouraFree__Version__c}</p>
+                                    <span>{!v.targetFields.AgouraFree__Version__c}</span>
+                                </div>
+                            </div>
+                            <div class="slds-col slds-size_1-of-2">
+                                <div class="slds-size_1-of-1 slds-p-bottom_medium" style="white-space:pre-wrap">
+                                    <p class="slds-text-title slds-m-bottom_xx-small">{!v.fieldLabelMap.AgouraFree__Time_Logged__c}</p>
+                                    <span>{!v.timeLogged}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="slds-grid slds-gutters slds-p-top_xxx-small">
+                            <div class="slds-col slds-size_1-of-2">
+                                <div class="slds-size_1-of-1 slds-p-bottom_medium" style="white-space:pre-wrap">
+                                    <p class="slds-text-title slds-m-bottom_xx-small">{!v.fieldLabelMap.AgouraFree__Fix_Version__c}</p>
+                                    <span>{!v.targetFields.AgouraFree__Fix_Version__c}</span>
+                                </div>
+                            </div>
+                            <div class="slds-col slds-size_1-of-2">
+                                <div class="slds-size_1-of-1 slds-p-bottom_medium" style="white-space:pre-wrap">
+                                    <p class="slds-text-title slds-m-bottom_xx-small">{!v.fieldLabelMap.AgouraFree__Time_Remaining__c}</p>
+                                    <span>{!v.timeRemaining}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <aura:if isTrue="{!v.targetFields.AgouraFree__Type__c == 'Bug'}">
+                            <div class="slds-grid slds-gutters slds-p-top_xxx-small">
+                                <div class="slds-col slds-size_1-of-2">
+                                    <div class="slds-size_1-of-1 slds-p-bottom_medium" style="white-space:pre-wrap">
+                                        <p class="slds-text-title slds-m-bottom_xx-small">{!v.fieldLabelMap.AgouraFree__Resolution__c}</p>
+                                        <span>{!v.targetFields.AgouraFree__Resolution__c}</span>
+                                    </div>
+                                </div>
+                                <div class="slds-col slds-size_1-of-2">
+                                    <div class="slds-size_1-of-1 slds-p-bottom_medium" style="white-space:pre-wrap">
+                                        <p class="slds-text-title slds-m-bottom_xx-small">{!v.fieldLabelMap.AgouraFree__Resolved_Date__c}</p>
+                                        <span><ui:outputDate value="{!v.targetFields.AgouraFree__Resolved_Date__c}" /></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </aura:if>
+                        <aura:if isTrue="{!v.subTasksSelection.length > 0}">
+                            <div class="slds-grid slds-gutters slds-p-top_xxx-small">
+                                <div class="slds-col slds-size_1-of-1">
+                                    <div class="slds-size_1-of-1 slds-p-bottom_medium" style="white-space:pre-wrap">
+                                        <p class="slds-text-title slds-m-bottom_xx-small">{!v.fieldLabelMap.AgouraFree__Sub_Tasks__c}</p>
+                                        <div id="{! globalId + '_selection' }" role="listbox" aria-orientation="horizontal">
+                                            <c:LookupDisplay selection="{!v.subTasksSelection}" />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </aura:if>
+                        <div class="slds-grid slds-gutters slds-p-top_xxx-small">
+                            <div class="slds-col slds-size_1-of-1">
+                                <div class="slds-size_1-of-1 slds-p-bottom_medium" style="white-space:pre-wrap">
+                                    <p class="slds-text-title slds-m-bottom_xx-small">{!v.fieldLabelMap.AgouraFree__Components__c}</p>
+                                    <span>{!v.targetFields.AgouraFree__Components__c}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="slds-grid slds-gutters slds-p-top_xxx-small">
+                            <div class="slds-col slds-size_1-of-1">
+                                <div class="slds-size_1-of-1 slds-p-bottom_medium" style="white-space:pre-wrap">
+                                    <p class="slds-text-title slds-m-bottom_xx-small">{!v.fieldLabelMap.AgouraFree__Dependencies__c}</p>
+                                    <span>{!v.targetFields.AgouraFree__Dependencies__c}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="slds-grid slds-gutters slds-p-top_xxx-small">
+                            <div class="slds-col slds-size_1-of-1">
+                                <div class="slds-size_1-of-1 slds-p-bottom_medium" style="white-space:pre-wrap">
+                                    <p class="slds-text-title slds-m-bottom_xx-small">{!v.fieldLabelMap.AgouraFree__Comments__c}</p>
+                                    <span>{!v.targetFields.AgouraFree__Comments__c}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>  
+                </lightning:card>
+            </lightning:layoutItem>
+            
+            <!-- Chatter -->                
+            <aura:if isTrue="{!v.chatterEnabled}">
+                <lightning:layoutItem flexibility="auto" size="12" class="innerPadding">
+                    <lightning:card title="Chatter">                             
+                        <div class="slds-border_top slds-m-horizontal_x-small slds-p-around_x-small">
+                            <div class="slds-grid slds-gutters slds-p-top_xxx-small">
+                                <div class="slds-col slds-size_1-of-1">
+                                    <div class="slds-size_1-of-1 slds-p-bottom_medium">
+                                        <lightning:inputRichText aura:id="chatterTextPostField" variant="bottom-toolbar" placeholder="Share an update..." 
+                                                                 label="Post" labelVisible="true"/>
+                                        <lightning:layout pullToBoundary="small" multipleRows="True">                            
+                                            <lightning:layoutItem flexibility="auto" size="12" largeDeviceSize="8" class="slds-p-horizontal_small"> 
+                                                <div class="slds-size_1-of-1">
+                                                    <p class="slds-text-heading_small slds-p-top_medium weight700">Project Task Chatter Feed</p> 
+                                                </div>
+                                            </lightning:layoutItem>
+                                            <lightning:layoutItem flexibility="auto" size="12" largeDeviceSize="4" class=" slds-p-horizontal_small"> 
+                                                <div class="slds-size_1-of-1">
+                                                    <div class="slds-p-top_medium" style="float:right">
+                                                        <lightning:buttonGroup>   
+                                                            <button class="slds-button slds-button--neutral" onclick="{!c.chatterFeedPost}">Share</button>
+                                                            <a href="/lightning/page/chatter" class="manualButtonMiddle">
+                                                                <button class="slds-button slds-button_neutral slds-truncate">Chatter</button>
+                                                            </a>
+                                                            <button class="slds-button slds-button--neutral" onclick="{!c.refreshChatterFeed}">Refresh</button>
+                                                        </lightning:buttonGroup>
+                                                    </div>
+                                                </div>
+                                            </lightning:layoutItem>
+                                        </lightning:layout>
+                                        <div aura:id="feedContainer" class="feed-container">   
+                                            <forceChatter:feed /> 
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>   
+                        </div>  
+                    </lightning:card>
+                </lightning:layoutItem>
+            </aura:if>
+        </lightning:layout>
+    </article>  
+</aura:component>

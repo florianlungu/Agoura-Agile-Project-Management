@@ -1,0 +1,876 @@
+<aura:component implements="lightning:actionOverride,flexipage:availableForRecordHome,force:hasRecordId" 
+                controller="ProjectControllerExt" access="global">
+    <lightning:navigation aura:id="nav" />
+    <!-- Project -->
+    <aura:attribute name="record" type="Id" />
+    <aura:attribute name="targetFields" type="Project__c" />
+    <aura:attribute name="recordError" type="String" />
+    <aura:attribute name="chatterGroupId" type="Id" default="{!v.targetFields.AgouraFree__Chatter_Group__c}"/>
+    <aura:attribute name="hasEditAccess" type="boolean" default="false"/>    
+    <aura:attribute name="hasDeleteAccess" type="boolean" default="false"/> 
+    <aura:attribute name="hasDeleteSprintTaskAccess" type="boolean" default="false"/>
+    <aura:attribute name="hasTransferAccess" type="boolean" default="false"/>
+    <aura:attribute name="readAccessList" type="List" default="[]"/>	
+    <aura:attribute name="editAccessList" type="List" default="[]"/>
+    <aura:attribute name="canSortBacklog" type="boolean" default="false"/>     
+    <aura:attribute name="showConfirmDeleteModal" type="boolean" default="false"/>    
+    <aura:attribute name="showConfirmDeleteToast" type="boolean" default="false"/>
+    <aura:attribute name="showPleaseWait" type="boolean" default="false"/>   
+    <aura:attribute name="showConfirmDeleteWhat" type="String"/>
+    <aura:attribute name="showConfirmDeleteWhatId" type="Id"/>    
+    <aura:attribute name="showConfirmModal" type="boolean" default="false"/>
+    <aura:attribute name="showConfirmTitle" type="String"/>
+    <aura:attribute name="showConfirmAsk" type="String"/>
+    <aura:attribute name="showConfirmAskMore" type="String"/>
+    <aura:attribute name="projectNewOwnerSelection" type="List" default="[]"/>
+    <aura:attribute name="windowTitle" type="String" />
+    <aura:attribute name="executiveSponsorList" type="List" default="[]"/>		
+    <aura:attribute name="productOwnerList" type="List" default="[]"/>		
+    <aura:attribute name="scrumMasterList" type="List" default="[]"/>	
+    <aura:attribute name="ownerList" type="List" default="[]"/>	
+    <aura:attribute name="createdByList" type="List" default="[]"/>	
+    <aura:attribute name="lastModifiedByList" type="List" default="[]"/>		
+    <aura:attribute name="tagList" type="List" default="[]"/>
+    <aura:attribute name="ideaBoardList" type="List" default="[]"/>
+    <aura:attribute name="accountList" type="List" default="[]"/>
+    <aura:attribute name="accessOptions" type="List" default="[{'label': '--None--', 'value': ''},
+                                                              {'label': 'Read Access', 'value': 'Read Access'},
+                                                              {'label': 'Edit Access', 'value': 'Edit Access'}]"/>
+    <aura:attribute name="cloneOptions" type="List" default="[{'label': 'Project Tags', 'value': 'Tags'},
+                                                             {'label': 'Goals', 'value': 'Project Goal'},
+                                                             {'label': 'Milestones', 'value': 'Project Milestone'},
+                                                             {'label': 'Risks', 'value': 'Project Risk'},
+                                                             {'label': 'Links', 'value': 'Project Link'},
+                                                             {'label': 'Stakeholders', 'value': 'Project Stakeholder'},
+                                                             {'label': 'Project Team', 'value': 'Project Team Member'},
+                                                             {'label': 'Swim Lanes', 'value': 'Project Swim Lane'},
+                                                             {'label': 'Project Tasks', 'value': 'Tasks'}]"/>
+    <aura:attribute name="fieldLabelMap" type="Map" default="{}"/>	
+    <aura:attribute name="fieldLabelMapItems" type="Map" default="{}"/>		
+    <aura:attribute name="fieldLabelMapTasks" type="Map" default="{}"/>	
+    
+    <!-- Roadmap -->
+    <aura:attribute name="projectGoalsList" type="ProjectItem__c[]"/>
+    <aura:attribute name="projectGoalsColumns" type="List"/>
+    <aura:attribute name="projectGoalsSortedBy" type="String" default="targetDate"/>
+    <aura:attribute name="projectGoalsSortedDirection" type="String" default="asc"/>
+    <aura:attribute name="projectMilestonesList" type="ProjectItem__c[]"/>
+    <aura:attribute name="projectMilestonesSortedBy" type="String" default="targetDate"/>
+    <aura:attribute name="projectMilestonesSortedDirection" type="String" default="asc"/>
+    <aura:attribute name="newGoal" type="ProjectItem__c" />
+    <!-- Risks -->
+    <aura:attribute name="riskProbabilityPicklistValues" type="Object" />
+    <aura:attribute name="riskImpactPicklistValues" type="Object" />
+    <aura:attribute name="riskStatusPicklistValues" type="Object" />
+    <aura:attribute name="projectRisksList" type="ProjectItem__c[]"/>
+    <aura:attribute name="projectRisksColumns" type="List"/>
+    <aura:attribute name="projectRisksSortedBy" type="String" default="Name"/>
+    <aura:attribute name="projectRisksSortedDirection" type="String" default="asc"/>
+    <c:PickListValues sObjectName="AgouraFree__ProjectItem__c" fieldName="AgouraFree__Probability__c" picklistValues="{!v.riskProbabilityPicklistValues}" />
+    <c:PickListValues sObjectName="AgouraFree__ProjectItem__c" fieldName="AgouraFree__Impact__c" picklistValues="{!v.riskImpactPicklistValues}" />
+    <c:PickListValues sObjectName="AgouraFree__ProjectItem__c" fieldName="AgouraFree__Status__c" picklistValues="{!v.riskStatusPicklistValues}" />
+    <!-- Links -->   
+    <aura:attribute name="projectLinkOwnerSelection" type="List" default="[]"/>
+    <aura:attribute name="projectLinksList" type="ProjectItem__c[]"/>
+    <aura:attribute name="projectLinksColumns" type="List"/>
+    <aura:attribute name="projectLinksColumnsPlus" type="List"/>
+    <aura:attribute name="projectLinksSortedBy" type="String" default="Title"/>
+    <aura:attribute name="projectLinksSortedDirection" type="String" default="asc"/>
+    <aura:attribute name="chatterEnabled" type="boolean" default="false"/>
+    <!-- Team -->  
+    <aura:attribute name="projectStakeholderSelection" type="List" default="[]"/>
+    <aura:attribute name="projectStakeholdersList" type="ProjectItem__c[]"/>  
+    <aura:attribute name="projectStakeholdersColumns" type="List"/>
+    <aura:attribute name="projectStakeholdersSortedBy" type="String" default="type"/>
+    <aura:attribute name="projectStakeholdersSortedDirection" type="String" default="asc"/>
+    <aura:attribute name="projectTeamList" type="ProjectItem__c[]"/>  
+    <aura:attribute name="projectTeamColumns" type="List"/>
+    <aura:attribute name="projectTeamColumnsPlus" type="List"/>
+    <aura:attribute name="projectTeamSortedBy" type="String" default="type"/>
+    <aura:attribute name="projectTeamSortedDirection" type="String" default="asc"/>
+    <aura:attribute name="stakeholderRACIPicklistValues" type="Object" />
+    <c:PickListValues sObjectName="AgouraFree__ProjectItem__c" fieldName="AgouraFree__RACI__c" picklistValues="{!v.stakeholderRACIPicklistValues}" />
+    <!-- Swim Lanes -->
+    <aura:attribute name="projectSwimLanesList" type="ProjectItem__c[]"/>   
+    <aura:attribute name="projectSwimLanesColumns" type="List"/>
+    <aura:attribute name="projectSwimLanesSortedBy" type="String" default="Title"/>
+    <aura:attribute name="projectSwimLanesSortedDirection" type="String" default="asc"/> 
+    <!-- Sprints -->
+    <aura:attribute name="projectSprintsList" type="Sprint__c[]"/>
+    <aura:attribute name="projectSprintsColumns" type="List"/>
+    <aura:attribute name="projectSprintsSortedBy" type="String" default="Name"/>
+    <aura:attribute name="projectSprintsSortedDirection" type="String" default="asc"/> 
+    <aura:attribute name="projectRetrospectivesList" type="Sprint__c[]"/>
+    <aura:attribute name="projectRetrospectivesColumns" type="List"/>
+    
+    <force:recordData aura:id="record"
+                      recordId="{!v.recordId}"
+                      targetError="{!v.recordError}"
+                      targetRecord="{!v.record}"
+                      targetFields="{!v.targetFields}"
+                      recordUpdated="{!c.handleRecordUpdated}"
+                      fields="Id, Name, AgouraFree__Title__c, AgouraFree__Status__c, AgouraFree__Project_Abbreviation__c, OwnerId, AgouraFree__IsTemplate__c,
+                              AgouraFree__Executive_Sponsor__c, AgouraFree__Product_Owner__c, AgouraFree__Scrum_Master__c, AgouraFree__Mission_Statement__c, 
+                              AgouraFree__Product__c, AgouraFree__Deliverables__c, AgouraFree__KPIs__c, AgouraFree__Value_Trackers__c, 
+                              AgouraFree__Assumptions__c, AgouraFree__Constraints__c, AgouraFree__Comments__c, CreatedDate, LastModifiedDate"
+                      mode="VIEW"/>
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+    
+    <!-- Display Lightning Data Service errors, if any -->
+    <aura:if isTrue="{!not(empty(v.recordError))}">
+        <div class="recordError">
+            <ui:message title="Error" severity="error" closable="true">
+                {!v.recordError}
+            </ui:message>
+        </div>
+    </aura:if>
+    
+    <!-- Confirm Modal -->
+    <aura:if isTrue="{!v.showConfirmModal}">
+        <div role="dialog" tabindex="-1" aria-labelledby="header99" class="slds-modal slds-fade-in-open ">
+            <div class="slds-modal__container">
+                <div class="slds-modal__header">
+                    <button class="slds-button slds-modal__close slds-button--icon-inverse" title="Close" onclick="{!c.closeConfirm}">
+                        X
+                        <span class="slds-assistive-text">Close</span>
+                    </button>
+                    <h2 id="header99" class="slds-text-heading--medium">{!v.showConfirmTitle}</h2>
+                </div>   
+                <div class="slds-modal__content slds-p-around--medium">
+                    <div class="slds-align_absolute-center" style="min-height: 5rem;">
+                        <aura:if isTrue="{!v.showConfirmTitle == 'Clone Project'}">
+                            <div class="slds-align_absolute-center">
+                                <span class="slds-p-around_medium">{!v.showConfirmAsk}<br /><br />                        
+                                    <lightning:checkboxGroup aura:id="cloneWhat" name="cloneWhat" 
+                                                             options="{! v.cloneOptions }" value=""/>
+                                    <br />{!v.showConfirmAskMore} 
+                                </span>
+                            </div>
+                        </aura:if> 
+                        <aura:if isTrue="{!v.showConfirmTitle == 'Change Owner'}">
+                            <span class="slds-p-around_medium">{!v.showConfirmAsk}<br /><br /> 
+                                <c:Lookup aura:id="propNewOwner"  selection="{!v.projectNewOwnerSelection}" 
+                                               onSearch="{!c.lookupNewOwnerSearch}" label="Record Owner" placeholder="Search Users"
+                                               isRequired="true"/>
+                            </span> 
+                        </aura:if>
+                        <aura:if isTrue="{!v.showConfirmTitle == 'New Project Swim Lane'}">
+                            <span class="slds-p-around_medium">{!v.showConfirmAsk}<br /><br /> 
+                                <lightning:input aura:id="propNewSwimLaneTitle" name="propNewSwimLaneTitle" required="true" 
+                                                 label="Title" maxlength="255" messageWhenBadInput="Please enter a title to save" />
+                            </span> 
+                        </aura:if>
+                    </div>
+                </div>
+                <div class="slds-modal__footer">
+                    <aura:if isTrue="{!v.showPleaseWait}">
+                        <div>Working, please wait...</div>
+                        <aura:set attribute="else">
+                            <button class="slds-button slds-button--neutral" onclick="{!c.closeConfirm}">Cancel</button>
+                            <aura:if isTrue="{!v.showConfirmTitle == 'Clone Project'}">
+                                <button class="slds-button slds-button--brand" onclick="{!c.cloneRecord}">Clone</button>
+                            </aura:if>
+                            <aura:if isTrue="{!v.showConfirmTitle == 'Change Owner'}">
+                                <button class="slds-button slds-button--brand" onclick="{!c.changeOwner}">Change {!v.fieldLabelMap.OwnerId}</button>
+                            </aura:if>
+                            <aura:if isTrue="{!v.showConfirmTitle == 'New Project Swim Lane'}">
+                                <button class="slds-button slds-button--brand" onclick="{!c.createSwimLane}">Create</button>
+                            </aura:if>
+                        </aura:set>
+                    </aura:if>                    
+                </div>
+            </div>
+        </div>
+        <div class="slds-backdrop slds-backdrop--open"></div>
+    </aura:if>
+    
+    <!-- Confirm Delete Modal -->
+    <aura:if isTrue="{!v.showConfirmDeleteModal}">
+        <div role="dialog" tabindex="-1" aria-labelledby="header99" class="slds-modal slds-fade-in-open ">
+            <div class="slds-modal__container">
+                <div class="slds-modal__header">
+                    <button class="slds-button slds-modal__close slds-button--icon-inverse" title="Close" onclick="{!c.closeConfirmDelete}">
+                        X
+                        <span class="slds-assistive-text">Close</span>
+                    </button>
+                    <h2 id="header99" class="slds-text-heading--medium">Delete {!v.showConfirmDeleteWhat}</h2>
+                </div>   
+                <div class="slds-modal__content slds-p-around--medium">
+                    <div class="slds-align_absolute-center" style="height: 5rem;">
+                        <lightning:icon size="medium" iconName="action:delete" alternativeText="Confirm Delete" />
+                        <span class="slds-p-around_medium">Are you sure you want to delete this {!v.showConfirmDeleteWhat}?</span>
+                    </div>
+                </div>
+                <div class="slds-modal__footer">
+                    <button class="slds-button slds-button--neutral" onclick="{!c.closeConfirmDelete}" >Cancel</button>
+                    <button class="slds-button slds-button--brand" onclick="{!c.deleteRecord}">Delete</button>
+                </div>
+            </div>
+        </div>
+        <div class="slds-backdrop slds-backdrop--open"></div>
+    </aura:if>  
+    
+    <!-- Header -->
+    <article id="projectRecord" onmouseover="{!c.updateWebPageTitle}">
+        <div class="slds-card slds-m-bottom_small">
+            <header class="slds-p-horizontal_medium">   
+                <lightning:layout pullToBoundary="small" multipleRows="True">                            
+                    <lightning:layoutItem flexibility="auto" size="12" largeDeviceSize="8" class="slds-p-horizontal_small"> 
+                        <div class="slds-size_1-of-1">
+                            <div class="slds-media__figure slds-p-top_medium" style="float:left">
+                                <lightning:icon iconName="standard:drafts" alternativeText="Project" class="agouraIcon"/>                                        
+                            </div>
+                            <div class="slds-media__body slds-p-top_small">
+                                <p class="slds-truncate">Project • {!v.targetFields.Name}</p>  
+                                <h1 class="slds-page-header__title slds-truncate slds-align-bottom" 
+                                    title="{!v.targetFields.AgouraFree__Title__c}">
+                                    <span>{!v.targetFields.AgouraFree__Title__c}</span>
+                                </h1>
+                            </div> 
+                        </div>
+                    </lightning:layoutItem>
+                    <lightning:layoutItem flexibility="auto" size="12" largeDeviceSize="4" class=" slds-p-horizontal_small"> 
+                        <div class="slds-size_1-of-1">
+                            <div class="slds-p-top_medium" style="float:right">
+                                <aura:if isTrue="{!and(empty(v.recordError),v.hasEditAccess == true)}">
+                                    <lightning:buttonGroup>
+                                        <lightning:button variant="neutral" label="Edit" onclick="{!c.editProjectRecord}" />
+                                        <a href="{!'/lightning/cmp/AgouraFree__CurrentSprint?AgouraFree__project='+v.recordId}" class="manualButtonMiddle">
+                                            <button class="slds-button slds-button_neutral slds-truncate">Current Sprint</button>
+                                        </a>
+                                        <a href="{!'/lightning/o/AgouraFree__ProjectTask__c/new?AgouraFree__project='+v.recordId}"
+                                           class="manualButtonMiddle2" target="_blank">
+                                            <button class="slds-button slds-button_neutral slds-truncate">New Project Task</button>
+                                        </a>
+                                        <lightning:buttonMenu alternativeText="Show menu" class="slds-button_last DropDownRight" 
+                                                              onselect="{! c.handleMenuSelect }">
+                                            <aura:if isTrue="{!and(empty(v.recordError),v.hasTransferAccess == true)}">
+                                                <lightning:menuItem label="Change Owner" value="Change Owner" />
+                                            </aura:if>
+                                            <lightning:menuItem label="Clone" value="Clone" />
+                                            <aura:if isTrue="{!and(empty(v.recordError),v.hasDeleteAccess == true)}">
+                                                <lightning:menuItem label="Delete" value="Delete" />
+                                            </aura:if>
+                                        </lightning:buttonMenu>
+                                    </lightning:buttonGroup>
+                                    <aura:set attribute="else">
+                                        <a href="{!'/lightning/cmp/AgouraFree__CurrentSprint?AgouraFree__project='+v.recordId}" 
+                                           class="manualButtonFirst">
+                                            <button class="slds-button slds-button_neutral slds-truncate">Current Sprint</button>
+                                        </a>
+                                        <lightning:buttonMenu alternativeText="Show menu" class="DropDownRight" 
+                                                              onselect="{! c.handleMenuSelect }">
+                                            <aura:if isTrue="{!and(empty(v.recordError),v.hasTransferAccess == true)}">
+                                                <lightning:menuItem label="Change Owner" value="Change Owner" />
+                                            </aura:if>
+                                            <lightning:menuItem label="Clone" value="Clone" />
+                                            <aura:if isTrue="{!and(empty(v.recordError),v.hasDeleteAccess == true)}">
+                                                <lightning:menuItem label="Delete" value="Delete" />
+                                            </aura:if>
+                                        </lightning:buttonMenu>
+                                    </aura:set>
+                                </aura:if>                                
+                            </div>
+                        </div>
+                    </lightning:layoutItem>
+                </lightning:layout>
+            </header>
+            
+            <!-- header fields just below title & buttons -->
+            <div class="slds-card__body slds-card__body_inner"> 
+                <div class="slds-grid slds-m-bottom_medium slds-p-top_small slds-border_top slds-gutters slds-wrap">
+                    <div class="slds-col slds-p-right_xx-large">
+                        <p class="slds-text-title slds-m-bottom_xx-small">{!v.fieldLabelMap.AgouraFree__Status__c}</p>
+                        <p class="slds-text-body_regular">{!v.targetFields.AgouraFree__Status__c}</p>
+                    </div>
+                    <div class="slds-col slds-p-horizontal_xx-large">
+                        <p class="slds-text-title slds-m-bottom_xx-small">{!v.fieldLabelMap.AgouraFree__Executive_Sponsor__c}</p>
+                        <p class="slds-text-body_regular"><c:LookupDisplay selection="{!v.executiveSponsorList}" /></p>
+                    </div>
+                    <div class="slds-col slds-p-horizontal_xx-large">
+                        <p class="slds-text-title slds-m-bottom_xx-small">{!v.fieldLabelMap.AgouraFree__Product_Owner__c}</p>
+                        <p class="slds-text-body_regular"><c:LookupDisplay selection="{!v.productOwnerList}" /></p>
+                    </div>
+                    <div class="slds-col slds-p-horizontal_xx-large">
+                        <p class="slds-text-title slds-m-bottom_xx-small">{!v.fieldLabelMap.AgouraFree__Scrum_Master__c}</p>
+                        <p class="slds-text-body_regular"><c:LookupDisplay selection="{!v.scrumMasterList}" /></p>
+                    </div>
+                    <div class="slds-col slds-p-horizontal_xx-large">
+                        <p class="slds-text-title slds-m-bottom_xx-small">Record Owner</p>
+                        <p class="slds-text-body_regular"><c:LookupDisplay selection="{!v.ownerList}" /></p>
+                    </div>
+                </div>                
+            </div>     
+        </div>
+        
+        <!-- Body -->
+        <div class="slds-card slds-p-horizontal_medium slds-p-bottm_medium slds-m-bottom_medium" style="margin-top:0 !important;">         
+            <lightning:tabset>
+                
+                <!-- Direction Tab -->
+                <lightning:tab label="Direction">
+                    <lightning:layout pullToBoundary="small" multipleRows="True" class="outerPadding">                            
+                        <lightning:layoutItem flexibility="auto" size="12" largeDeviceSize="6" 
+                                              class="innerPadding slds-p-top_xxx-small slds-p-horizontal_small">                            
+                            <div class="slds-size_1-of-1 slds-p-bottom_large" style="white-space:pre-wrap">
+                                <p class="slds-text-heading_small slds-m-bottom_xx-small weight700">{!v.fieldLabelMap.AgouraFree__Mission_Statement__c}</p>
+                                <p class="slds-text-body_regular">{!v.targetFields.AgouraFree__Mission_Statement__c}</p>
+                            </div>
+                            <div class="slds-size_1-of-1 slds-p-bottom_large" style="white-space:pre-wrap">
+                                <p class="slds-text-heading_small slds-m-bottom_xx-small weight700">{!v.fieldLabelMap.AgouraFree__Product__c}</p>
+                                <p class="slds-text-body_regular">{!v.targetFields.AgouraFree__Product__c}</p>
+                            </div>
+                            <div class="slds-size_1-of-1 slds-p-bottom_large" style="white-space:pre-wrap">
+                                <p class="slds-text-heading_small slds-m-bottom_xx-small weight700">{!v.fieldLabelMap.AgouraFree__Deliverables__c}</p>
+                                <p class="slds-text-body_regular">{!v.targetFields.AgouraFree__Deliverables__c}</p>
+                            </div>
+                            <div class="slds-size_1-of-1 slds-p-bottom_large" style="white-space:pre-wrap">
+                                <p class="slds-text-heading_small slds-m-bottom_xx-small weight700">{!v.fieldLabelMap.AgouraFree__KPIs__c}</p>
+                                <p class="slds-text-body_regular">{!v.targetFields.AgouraFree__KPIs__c}</p>
+                            </div>
+                            <div class="slds-size_1-of-1 slds-p-bottom_large" style="white-space:pre-wrap">
+                                <p class="slds-text-heading_small slds-m-bottom_xx-small weight700">{!v.fieldLabelMap.AgouraFree__Value_Trackers__c}</p>
+                                <p class="slds-text-body_regular">{!v.targetFields.AgouraFree__Value_Trackers__c}</p>
+                            </div>
+                            <div class="slds-size_1-of-1 slds-p-bottom_large" style="white-space:pre-wrap">
+                                <p class="slds-text-heading_small slds-m-bottom_xx-small weight700">{!v.fieldLabelMap.AgouraFree__Assumptions__c}</p>
+                                <p class="slds-text-body_regular">{!v.targetFields.AgouraFree__Assumptions__c}</p>
+                            </div>
+                            <div class="slds-size_1-of-1 slds-p-bottom_large" style="white-space:pre-wrap">
+                                <p class="slds-text-heading_small slds-m-bottom_xx-small weight700">{!v.fieldLabelMap.AgouraFree__Constraints__c}</p>
+                                <p class="slds-text-body_regular">{!v.targetFields.AgouraFree__Constraints__c}</p>
+                            </div>
+                            <div class="slds-size_1-of-1 slds-p-bottom_large" style="white-space:pre-wrap">
+                                <p class="slds-text-heading_small slds-m-bottom_xx-small weight700">{!v.fieldLabelMap.AgouraFree__Comments__c}</p>
+                                <p class="slds-text-body_regular">{!v.targetFields.AgouraFree__Comments__c}</p>
+                            </div>                            
+                        </lightning:layoutItem>                         
+                        <lightning:layoutItem flexibility="auto" size="12" largeDeviceSize="6" 
+                                              class="innerPadding slds-p-top_xxx-small slds-p-horizontal_small">                           
+                            <div class="slds-grid slds-gutters">
+                                <div class="slds-col slds-size_1-of-2 slds-p-bottom_large">
+                                    <p class="slds-text-title slds-m-bottom_xx-small">{!v.fieldLabelMap.AgouraFree__Project_Abbreviation__c}</p>
+                                    <p class="slds-text-body_regular">{!v.targetFields.AgouraFree__Project_Abbreviation__c}</p>
+                                </div>
+                                <div class="slds-col slds-size_1-of-2 slds-p-bottom_large">
+                                    <p class="slds-text-title slds-m-bottom_xx-small">Idea Board</p>
+                                    <div id="{! globalId + '_selection' }" role="listbox" aria-orientation="horizontal">
+                                        <c:LookupDisplay selection="{!v.ideaBoardList}" />
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="slds-grid slds-gutters">
+                                <div class="slds-col slds-size_1-of-2 slds-p-bottom_large">
+                                    <p class="slds-text-title slds-m-bottom_xx-small">{!v.fieldLabelMap.AgouraFree__IsTemplate__c}</p>
+                                    <ui:inputCheckbox value="{!v.targetFields.AgouraFree__IsTemplate__c}" disabled="true" />
+                                </div>
+                                <div class="slds-col slds-size_1-of-2 slds-p-bottom_large">
+                                    <p class="slds-text-title slds-m-bottom_xx-small">Account</p>
+                                    <div id="{! globalId + '_selection' }" role="listbox" aria-orientation="horizontal">
+                                        <c:LookupDisplay selection="{!v.accountList}" />
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="slds-grid slds-gutters">
+                                <div class="slds-col slds-size_2-of-2 slds-p-bottom_large">
+                                    <p class="slds-text-title slds-m-bottom_xx-small">Project Tags</p>
+                                    <div id="{! globalId + '_selection' }" role="listbox" aria-orientation="horizontal">
+                                        <c:LookupDisplay selection="{!v.tagList}" showLink="false" />
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="slds-grid slds-gutters">
+                                <div class="slds-col slds-size_1-of-2 slds-p-bottom_large">
+                                    <p class="slds-text-title slds-m-bottom_xx-small">Read Access</p>
+                                    <div id="{! globalId + '_selection' }" role="listbox" aria-orientation="horizontal">
+                                        <c:LookupDisplay selection="{!v.readAccessList}" />
+                                    </div>
+                                </div>
+                                <div class="slds-col slds-size_1-of-2 slds-p-bottom_large">
+                                    <p class="slds-text-title slds-m-bottom_xx-small">Edit Access</p>
+                                    <div id="{! globalId + '_selection' }" role="listbox" aria-orientation="horizontal">
+                                        <c:LookupDisplay selection="{!v.editAccessList}" />
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="slds-grid slds-gutters">
+                                <div class="slds-col slds-size_1-of-2 slds-p-bottom_large">
+                                    <p class="slds-text-title slds-m-bottom_xx-small">Created By</p>
+                                    <div id="{! globalId + '_selection' }" role="listbox" aria-orientation="horizontal">
+                                        <c:LookupDisplay selection="{!v.createdByList}" />
+                                        <span class="slds-m-top_xxx-small slds-p-top_xx-small" style="display:inline-block;vertical-align:top;"> on <ui:outputDateTime value="{!v.targetFields.CreatedDate}" /></span>
+                                    </div>
+                                </div>
+                                <div class="slds-col slds-size_1-of-2 slds-p-bottom_large">
+                                    <p class="slds-text-title slds-m-bottom_xx-small">Last Modified By</p>
+                                    <div id="{! globalId + '_selection' }" role="listbox" aria-orientation="horizontal">
+                                        <c:LookupDisplay selection="{!v.lastModifiedByList}" />
+                                        <span class="slds-m-top_xxx-small slds-p-top_xx-small" style="display:inline-block;vertical-align:top;"> on <ui:outputDateTime value="{!v.targetFields.LastModifiedDate}" /></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </lightning:layoutItem>
+                    </lightning:layout>
+                </lightning:tab>
+                
+                <!-- Roadmap Tab -->
+                <lightning:tab label="Roadmap">
+                    <!-- Add Goal -->
+                    <div class="c-container">
+                        <lightning:layout multipleRows="true">
+                            <lightning:layoutItem size="12" largeDeviceSize="2">
+                                <div class="slds-p-horizontal_x-small slds-truncate">  
+                                    <lightning:select aura:id="propGoalType" name="propGoalType" label="{!v.fieldLabelMapItems.AgouraFree__Type__c}" 
+                                                      required="true" class="" value="Project Goal" onchange="{!c.updateRoadmapFields}">                                
+                                        <option value="Project Goal">Project Goal</option>      
+                                        <option value="Project Milestone">Project Milestone</option>                                
+                                    </lightning:select> 
+                                </div>
+                            </lightning:layoutItem>
+                            <lightning:layoutItem size="12" largeDeviceSize="3">
+                                <div class="slds-p-horizontal_x-small slds-truncate">
+                                    <lightning:input aura:id="propGoalTitle" name="propGoalTitle" required="true" 
+                                                     label="{!v.fieldLabelMapItems.AgouraFree__Title__c}" maxlength="255" />
+                                </div>
+                            </lightning:layoutItem>
+                            <lightning:layoutItem size="6" largeDeviceSize="1"> 
+                                <div aura:id="editStartDate" class="slds-p-horizontal_x-small slds-truncate slds-show">
+                                    <lightning:input type="date" aura:id="propGoalStartDate" name="propGoalStartDate" 
+                                                     label="{!v.fieldLabelMapItems.AgouraFree__Start_Date__c}" class="slds-truncate"/>      
+                                </div>
+                                <div aura:id="readOnlyStartDate" class="slds-p-horizontal_x-small slds-truncate slds-hide">
+                                    <lightning:input type="date" name="readonlyDate" label="{!v.fieldLabelMapItems.AgouraFree__Start_Date__c}" disabled="true" />      
+                                </div>
+                            </lightning:layoutItem>
+                            <lightning:layoutItem size="6" largeDeviceSize="1">
+                                <div class="slds-p-horizontal_x-small slds-truncate">
+                                    <lightning:input type="date" aura:id="propGoalTargetDate" name="propGoalTargetDate" 
+                                                     label="{!v.fieldLabelMapItems.AgouraFree__Target_Date__c}" class="slds-truncate"/>      
+                                </div>
+                            </lightning:layoutItem>
+                            <lightning:layoutItem size="6" largeDeviceSize="1">
+                                <div class="slds-p-horizontal_x-small slds-truncate">
+                                    <lightning:input type="number" aura:id="propGoalProgress" name="propGoalProgress" 
+                                                     label="{!v.fieldLabelMapItems.AgouraFree__Progress__c}" formatter="percent-fixed"/>
+                                </div>
+                            </lightning:layoutItem>
+                            <lightning:layoutItem size="6" largeDeviceSize="2">
+                                <div class="slds-p-horizontal_x-small slds-truncate">
+                                    <lightning:input aura:id="propGoalComments" name="propGoalComments"
+                                                     label="{!v.fieldLabelMapItems.AgouraFree__Comments__c}" maxlength="131072" />
+                                </div>
+                            </lightning:layoutItem>
+                            <lightning:layoutItem size="12" largeDeviceSize="2">
+                                <div class="slds-p-top_xx-small" style="float:right">
+                                    <div class="slds-button-group slds-m-top_medium slds-p-top_xx-small" role="group">
+                                        <aura:if isTrue="{!and(empty(v.recordError),v.hasEditAccess == true)}">
+                                            <button class="slds-button slds-button_neutral" onclick="{!c.addNewGoal}">Add</button> 
+                                        </aura:if>                        
+                                        <button class="slds-button slds-button_neutral" onclick="{!c.refreshGoalsList}">Refresh</button>
+                                    </div>                            
+                                </div>
+                            </lightning:layoutItem>
+                        </lightning:layout>
+                    </div>
+                    
+                    <div class="slds-p-top_x-large slds-p-bottom_large">
+                        <!-- Project Goals -->
+                        <lightning:layout pullToBoundary="small" multipleRows="True" class="outerPadding">                            
+                            <lightning:layoutItem flexibility="auto" size="12" class="innerPadding slds-p-horizontal_small"> 
+                                <p class="slds-text-heading_small slds-m-bottom_xx-small weight700">Goals &amp; Milestones</p>
+                                <lightning:datatable data="{!v.projectGoalsList}" 
+                                                     columns="{!v.projectGoalsColumns}" 
+                                                     keyField="title"
+                                                     hideCheckboxColumn="true"
+                                                     onsort="{!c.updateProjectGoalsColumnSorting}"
+                                                     sortedBy="{!v.projectGoalsSortedBy}"  
+                                                     sortedDirection="{!v.projectGoalsSortedDirection}"
+                                                     onrowaction="{!c.handleProjectItemRowAction}"
+                                                     class="agouraIcon"/> 
+                            </lightning:layoutItem>      
+                            <!--
+                            <lightning:layoutItem flexibility="auto" size="12" largeDeviceSize="6" 
+                                                  class="innerPadding slds-p-horizontal_small"> 
+                                <p class="slds-text-heading_small slds-m-bottom_xx-small weight700">Milestones</p>
+                                <lightning:datatable data="{!v.projectMilestonesList}" 
+                                                     columns="{!v.projectGoalsColumns}" 
+                                                     keyField="title"
+                                                     hideCheckboxColumn="true"
+                                                     onsort="{!c.updateProjectMilestonesColumnSorting}"
+                                                     sortedBy="{!v.projectMilestonesSortedBy}"  
+                                                     sortedDirection="{!v.projectMilestonesSortedDirection}"
+                                                     onrowaction="{!c.handleProjectItemRowAction}"
+                                                     class="slds-p-bottom_large agouraIcon"/>
+                            </lightning:layoutItem>
+							-->
+                        </lightning:layout>                         
+                    </div>  
+                </lightning:tab>
+                
+                <!-- Risks Tab -->
+                <lightning:tab label="Risks">
+                    <!-- Add Risk -->
+                    <div class="c-container">
+                        <lightning:layout multipleRows="true">
+                            <lightning:layoutItem size="12" largeDeviceSize="3">
+                                <div class="slds-p-horizontal_x-small slds-truncate">
+                                    <lightning:input aura:id="propRiskTitle" name="propRiskTitle" required="true" 
+                                                     label="{!v.fieldLabelMapItems.AgouraFree__Title__c}" maxlength="255" />
+                                </div>
+                            </lightning:layoutItem>
+                            <lightning:layoutItem size="12" largeDeviceSize="1">
+                                <div class="slds-p-horizontal_x-small slds-truncate">  
+                                    <lightning:select aura:id="propRiskStatus" name="propRiskStatus" label="{!v.fieldLabelMapItems.AgouraFree__Status__c}" 
+                                                      required="true" value="{!v.riskStatusPicklistValues[0]}">                                
+                                        <aura:iteration items="{!v.riskStatusPicklistValues}" var="item">
+                                            <option value="{!item}">{!item}</option>
+                                        </aura:iteration>                               
+                                    </lightning:select> 
+                                </div>
+                            </lightning:layoutItem>
+                            <lightning:layoutItem size="12" largeDeviceSize="1">
+                                <div class="slds-p-horizontal_x-small slds-truncate">  
+                                    <lightning:select aura:id="propRiskProbability" name="propRiskProbability" label="{!v.fieldLabelMapItems.AgouraFree__Probability__c}">  
+                                        <option value="" selected="selected">--None--</option>
+                                        <aura:iteration items="{!v.riskProbabilityPicklistValues}" var="item">
+                                            <option value="{!item}">{!item}</option>
+                                        </aura:iteration>                               
+                                    </lightning:select> 
+                                </div>
+                            </lightning:layoutItem>
+                            <lightning:layoutItem size="12" largeDeviceSize="1">
+                                <div class="slds-p-horizontal_x-small slds-truncate">  
+                                    <lightning:select aura:id="propRiskImpact" name="propRiskImpact" label="{!v.fieldLabelMapItems.AgouraFree__Impact__c}">   
+                                        <option value="" selected="selected">--None--</option>                              
+                                        <aura:iteration items="{!v.riskImpactPicklistValues}" var="item">
+                                            <option value="{!item}">{!item}</option>
+                                        </aura:iteration>                               
+                                    </lightning:select> 
+                                </div>
+                            </lightning:layoutItem>
+                            <lightning:layoutItem size="12" largeDeviceSize="3">
+                                <div class="slds-p-horizontal_x-small slds-truncate">
+                                    <lightning:input aura:id="propRiskResponse" name="propRiskResponse"
+                                                     label="{!v.fieldLabelMapItems.AgouraFree__Response__c}" maxlength="131072" />
+                                </div>
+                            </lightning:layoutItem>
+                            <lightning:layoutItem size="12" largeDeviceSize="3">
+                                <div class="slds-p-top_xx-small" style="float:right;">
+                                    <div class="slds-button-group slds-m-top_medium slds-p-top_xx-small" role="group">
+                                        <aura:if isTrue="{!and(empty(v.recordError),v.hasEditAccess == true)}">
+                                            <button class="slds-button slds-button_neutral" onclick="{!c.addNewRisk}">Add</button> 
+                                        </aura:if>                        
+                                        <button class="slds-button slds-button_neutral" onclick="{!c.refreshRisksList}">Refresh</button>
+                                    </div>                            
+                                </div>
+                            </lightning:layoutItem>
+                        </lightning:layout>
+                    </div> 
+                    
+                    <div class="slds-p-top_x-large slds-p-bottom_large">
+                        <!-- Project Risks -->                           
+                        <p class="slds-text-heading_small slds-m-bottom_xx-small weight700">Risk Register</p>
+                        <lightning:datatable data="{!v.projectRisksList}" 
+                                             columns="{!v.projectRisksColumns}" 
+                                             keyField="title"
+                                             hideCheckboxColumn="true"
+                                             onsort="{!c.updateProjectRisksColumnSorting}"
+                                             sortedBy="{!v.projectRisksSortedBy}"  
+                                             sortedDirection="{!v.projectRisksSortedDirection}"
+                                             onrowaction="{!c.handleProjectItemRowAction}"/>    
+                    </div>   
+                </lightning:tab>
+                
+                <!-- Links Tab -->
+                <lightning:tab label="Links">
+                    <!-- Add Link -->
+                    <div class="c-container">
+                        <lightning:layout multipleRows="true">
+                            <lightning:layoutItem size="12" largeDeviceSize="3">
+                                <div class="slds-p-horizontal_x-small slds-truncate">
+                                    <lightning:input aura:id="propLinkTitle" name="propLinkTitle" required="true" 
+                                                     label="{!v.fieldLabelMapItems.AgouraFree__Title__c}" maxlength="255" />
+                                </div>
+                            </lightning:layoutItem>
+                            <lightning:layoutItem size="12" largeDeviceSize="3">
+                                <div class="slds-p-horizontal_x-small slds-truncate">
+                                    <lightning:input aura:id="propLinkURL" name="propLinkURL" required="true" 
+                                                     label="{!v.fieldLabelMapItems.AgouraFree__URL__c}" type="url" maxlength="255" placeholder="example: https://www.salesforce.com" />
+                                </div> 
+                            </lightning:layoutItem>
+                            <lightning:layoutItem size="12" largeDeviceSize="3">
+                                <div class="slds-p-horizontal_x-small slds-truncate">
+                                    <c:Lookup aura:id="propLinkOwner"  selection="{!v.projectLinkOwnerSelection}" 
+                                                   onSearch="{!c.lookupLinkOwnerSearch}" 
+                                                   label="Project Link Owner" placeholder="Search Users"/>                        
+                                </div>
+                            </lightning:layoutItem>
+                            <lightning:layoutItem size="12" largeDeviceSize="3">
+                                <div class="slds-p-top_xx-small" style="float:right;">
+                                    <div class="slds-button-group slds-m-top_medium slds-p-top_xx-small" role="group">
+                                        <aura:if isTrue="{!and(empty(v.recordError),v.hasEditAccess == true)}">
+                                            <button class="slds-button slds-button_neutral" onclick="{!c.addNewLink}">Add</button> 
+                                        </aura:if>                        
+                                        <button class="slds-button slds-button_neutral" onclick="{!c.refreshLinksList}">Refresh</button>
+                                    </div>                            
+                                </div>
+                            </lightning:layoutItem>
+                        </lightning:layout>
+                    </div>
+                    
+                    <div class="slds-p-top_x-large slds-p-bottom_large">                                                   
+                        <p class="slds-text-heading_small slds-m-bottom_xx-small weight700">Project Files and URL Links</p>
+                        <lightning:datatable data="{!v.projectLinksList}" 
+                                             columns="{!v.projectLinksColumns}" 
+                                             keyField="title"
+                                             hideCheckboxColumn="true"
+                                             onsort="{!c.updateProjectLinksColumnSorting}"
+                                             sortedBy="{!v.projectLinksSortedBy}"  
+                                             sortedDirection="{!v.projectLinksSortedDirection}"
+                                             onrowaction="{!c.handleProjectItemRowAction}"/>                  
+                    </div> 
+                </lightning:tab>
+                
+                <!-- Team Tab -->
+                <lightning:tab label="Team">
+                    <!-- Add Stakeholder -->
+                    <div class="c-container">
+                        <lightning:layout multipleRows="true">
+                            <lightning:layoutItem size="12" largeDeviceSize="2">
+                                <div class="slds-p-horizontal_x-small slds-truncate">  
+                                    <lightning:select aura:id="propStakeholderType" name="propStakeholderType" label="{!v.fieldLabelMapItems.AgouraFree__Type__c}" 
+                                                      required="true" value="Project Stakeholder" onchange="{!c.updateProjectTeamFields}">     
+                                        <option value="Project Stakeholder">Project Stakeholder</option>                                 
+                                        <option value="Project Team Member">Project Team Member</option>                                
+                                    </lightning:select> 
+                                </div>
+                            </lightning:layoutItem>
+                            <lightning:layoutItem size="12" largeDeviceSize="3">
+                                <div class="slds-p-horizontal_x-small slds-truncate">
+                                    <c:Lookup aura:id="propStakeholder" selection="{!v.projectStakeholderSelection}" 
+                                              onSearch="{!c.lookupStakeholderSearch}" label="{!v.fieldLabelMapItems.AgouraFree__User__c}" 
+                                              placeholder="Search Users" isRequired="true"/>
+                                </div>
+                            </lightning:layoutItem>
+                            <lightning:layoutItem size="12" largeDeviceSize="2">
+                                <div aura:id="teamRACI" class="slds-p-horizontal_x-small slds-truncate slds-show">                                     
+                                    <lightning:select aura:id="propStakeholderRACI" name="propStakeholderRACI" label="{!v.fieldLabelMapItems.AgouraFree__RACI__c}">                                
+                                        <option value="">--None--</option> 
+                                        <aura:iteration items="{!v.stakeholderRACIPicklistValues}" var="item">
+                                            <option value="{!item}">{!item}</option>
+                                        </aura:iteration>                                
+                                    </lightning:select> 
+                                </div>
+                                <div aura:id="teamSwimLane" class="slds-p-horizontal_x-small slds-truncate slds-hide"> 
+                                    <aura:if isTrue="{!v.projectSwimLanesList.length > 0}">
+                                        <lightning:select aura:id="propStakeholderSwimLane" name="propStakeholderSwimLane" label="Swim Lane">                                
+                                            <option value="">--None--</option> 
+                                            <aura:iteration items="{!v.projectSwimLanesList}" var="item">
+                                                <option value="{!item.id}">{!item.title}</option>
+                                            </aura:iteration>
+                                        </lightning:select> 
+                                    </aura:if> 
+                                </div>
+                            </lightning:layoutItem>
+                            <lightning:layoutItem size="12" largeDeviceSize="1">
+                                <div class="slds-p-horizontal_x-small slds-truncate">
+                                    <lightning:select aura:id="propGrantAcesss" name="propGrantAcesss" label="Grant">            
+                                        <aura:iteration items="{!v.accessOptions}" var="item">
+                                            <option value="{!item.value}">{!item.label}</option>
+                                        </aura:iteration>
+                                    </lightning:select>
+                                </div>
+                            </lightning:layoutItem>
+                            <lightning:layoutItem size="12" largeDeviceSize="4">
+                                <div class="slds-p-top_xx-small" style="float:right;">
+                                    <div class="slds-button-group slds-m-top_medium slds-p-top_xx-small" role="group">
+                                        <aura:if isTrue="{!and(empty(v.recordError),v.hasEditAccess == true)}">
+                                            <button class="slds-button slds-button_neutral" onclick="{!c.addNewStakeholder}">Add</button> 
+                                        </aura:if>                        
+                                        <button class="slds-button slds-button_neutral" onclick="{!c.refreshStakeholdersList}">Refresh</button>
+                                    </div>                            
+                                </div>
+                            </lightning:layoutItem>
+                        </lightning:layout>
+                    </div> 
+                    
+                    <div class="slds-p-top_x-large slds-p-bottom_large">
+                        <lightning:layout pullToBoundary="small" multipleRows="True" class="outerPadding"> 
+                            <!-- Stakeholders -->                           
+                            <lightning:layoutItem flexibility="auto" size="12" largeDeviceSize="6" 
+                                                  class="innerPadding slds-p-horizontal_small">                           
+                                <p class="slds-text-heading_small slds-m-bottom_xx-small weight700">Stakeholders</p>
+                                <lightning:datatable data="{!v.projectStakeholdersList}" 
+                                                     columns="{!v.projectStakeholdersColumns}" 
+                                                     keyField="name"
+                                                     hideCheckboxColumn="true"
+                                                     onsort="{!c.updateProjectStakeholdersColumnSorting}"
+                                                     sortedBy="{!v.projectStakeholdersSortedBy}"  
+                                                     sortedDirection="{!v.projectStakeholdersSortedDirection}"
+                                                     onrowaction="{!c.handleProjectItemRowAction}"/>                  
+                            </lightning:layoutItem>
+                            <!-- Project Team -->
+                            <lightning:layoutItem flexibility="auto" size="12" largeDeviceSize="6" 
+                                                  class="innerPadding slds-p-horizontal_small">                           
+                                <p class="slds-text-heading_small slds-m-bottom_xx-small weight700">Project Team</p>
+                                <aura:if isTrue="{!v.projectSwimLanesList.length > 0}">
+                                    <lightning:datatable data="{!v.projectTeamList}" 
+                                                         columns="{!v.projectTeamColumnsPlus}" 
+                                                         keyField="name"
+                                                         hideCheckboxColumn="true"
+                                                         onsort="{!c.updateProjectTeamColumnSorting}"
+                                                         sortedBy="{!v.projectTeamSortedBy}"  
+                                                         sortedDirection="{!v.projectTeamSortedDirection}"
+                                                         onrowaction="{!c.handleProjectItemRowAction}"/>         
+                                    <aura:set attribute="else">
+                                        <lightning:datatable data="{!v.projectTeamList}" 
+                                                             columns="{!v.projectTeamColumns}" 
+                                                             keyField="name"
+                                                             hideCheckboxColumn="true"
+                                                             onsort="{!c.updateProjectTeamColumnSorting}"
+                                                             sortedBy="{!v.projectTeamSortedBy}"  
+                                                             sortedDirection="{!v.projectTeamSortedDirection}"
+                                                             onrowaction="{!c.handleProjectItemRowAction}"/>
+                                    </aura:set>
+                                </aura:if>                                              
+                            </lightning:layoutItem>
+                        </lightning:layout>                
+                    </div>
+                </lightning:tab>
+                
+                <!-- Tasks Tab -->
+                <lightning:tab label="Tasks">
+                    <c:ProjectTaskTabFilter recStr="{!v.recordId}" fieldLabelMapTasks="{!v.fieldLabelMapTasks}"/>
+                    <c:SortableProjectTaskList recStr="{!v.recordId}" canSortBacklog="{!v.canSortBacklog}" fieldLabelMapTasks="{!v.fieldLabelMapTasks}"/> 
+                </lightning:tab>
+                
+                <!-- Sprints Tab -->
+                <lightning:tab label="Sprints">
+                    <!-- Add Sprint and Swim Lane -->
+                    <div class="slds-grid slds-gutters slds-p-left_xx-small slds-p-right_small">   
+                        <div class="slds-p-horizontal_x-small slds-col_bump-right">
+                        </div>
+                        <div class="slds-p-top_xx-small">
+                            <div class="slds-button-group slds-m-top_medium slds-p-top_xx-small" role="group">
+                                <aura:if isTrue="{!and(empty(v.recordError),v.hasEditAccess == true)}">
+                                    <a href="{!'/lightning/o/AgouraFree__Sprint__c/new?AgouraFree__project='+v.recordId}" class="manualButtonFirst">
+                                        <button class="slds-button slds-button_neutral slds-truncate">New Sprint</button>
+                                    </a>
+                                    <button class="slds-button slds-button_neutral" onclick="{!c.addNewSwimLane}">New Swim Lane</button>
+                                </aura:if>  
+                                <button class="slds-button slds-button_neutral" onclick="{!c.refreshSprintsList}">Refresh</button>
+                            </div>                            
+                        </div>
+                    </div>                     
+                    
+                    <aura:if isTrue="{!v.projectSwimLanesList.length > 0}">
+                        <!-- Sprints & Swim Lanes -->
+                        <div class="slds-p-top_x-large slds-p-bottom_large">
+                            <lightning:layout pullToBoundary="small" multipleRows="True" class="outerPadding"> 
+                                <lightning:layoutItem flexibility="auto" size="12" largeDeviceSize="9" 
+                                                      class="innerPadding slds-p-horizontal_small">                           
+                                    <p class="slds-text-heading_small slds-m-bottom_xx-small weight700">Sprints</p>                            
+                                    <lightning:datatable data="{!v.projectSprintsList}" 
+                                                         columns="{!v.projectSprintsColumns}" 
+                                                         keyField="title"
+                                                         hideCheckboxColumn="true"
+                                                         onsort="{!c.updateProjectSprintsColumnSorting}"
+                                                         sortedBy="{!v.projectSprintsSortedBy}"  
+                                                         sortedDirection="{!v.projectSprintsSortedDirection}"
+                                                         onrowaction="{!c.handleProjectItemRowAction}"/>                  
+                                </lightning:layoutItem>
+                                <lightning:layoutItem flexibility="auto" size="12" largeDeviceSize="3" 
+                                                      class="innerPadding slds-p-horizontal_small">                           
+                                    <p class="slds-text-heading_small slds-m-bottom_xx-small weight700">Swim Lanes</p>                                
+                                    <lightning:datatable data="{!v.projectSwimLanesList}" 
+                                                         columns="{!v.projectSwimLanesColumns}" 
+                                                         keyField="title"
+                                                         hideCheckboxColumn="true"
+                                                         onsort="{!c.updateSwimLanesColumnSorting}"
+                                                         sortedBy="{!v.projectSwimLanesSortedBy}"  
+                                                         sortedDirection="{!v.projectSwimLanesSortedDirection}"
+                                                         onrowaction="{!c.handleProjectItemRowAction}"/>
+                                </lightning:layoutItem>
+                            </lightning:layout>                
+                        </div>
+                        
+                        <aura:set attribute="else">
+                            <!-- Sprints / No Swim Lanes -->
+                            <div class="slds-p-top_x-large">
+                                <p class="slds-text-heading_small slds-m-bottom_xx-small weight700">Sprints</p>                            
+                                <lightning:datatable data="{!v.projectSprintsList}" 
+                                                     columns="{!v.projectSprintsColumns}" 
+                                                     keyField="title"
+                                                     hideCheckboxColumn="true"
+                                                     onsort="{!c.updateProjectSprintsColumnSorting}"
+                                                     sortedBy="Name"  
+                                                     sortedDirection="asc"
+                                                     onrowaction="{!c.handleProjectItemRowAction}"/>                                                 
+                            </div> 
+                        </aura:set>
+                    </aura:if>
+                </lightning:tab>
+                
+                <!-- Retrospective Tab -->
+                <lightning:tab label="Retrospectives">
+                    <div class="slds-grid slds-gutters slds-p-left_xx-small slds-p-right_small">                        
+                        <div class="slds-p-horizontal_x-small slds-col_bump-right">
+                        </div>
+                        <div class="slds-p-top_xx-small">
+                            <div class="slds-button-group slds-m-top_medium slds-p-top_xx-small" role="group">                       
+                                <button class="slds-button slds-button_neutral" onclick="{!c.refreshRetrospectivesList}">Refresh</button>
+                            </div>                            
+                        </div>
+                    </div>  
+                    
+                    <div class="slds-p-top_x-large">
+                        <p class="slds-text-heading_small slds-m-bottom_xx-small weight700">Retrospectives</p>                            
+                        <lightning:datatable data="{!v.projectRetrospectivesList}" 
+                                             columns="{!v.projectRetrospectivesColumns}" 
+                                             keyField="title"
+                                             hideCheckboxColumn="true"
+                                             sortedBy="{!v.projectRetrospectivesSortedBy}"  
+                                             sortedDirection="{!v.projectRetrospectivesSortedDirection}"
+                                             onrowaction="{!c.handleProjectItemRowAction}"/>
+                    </div> 
+                </lightning:tab>
+ 
+                <!-- Chatter Tab -->
+                <aura:if isTrue="{!v.chatterEnabled}">
+                    <lightning:tab label="Chatter">                    
+                        <div> 
+                            <lightning:inputRichText aura:id="chatterTextPostField" variant="bottom-toolbar" placeholder="Share an update..." 
+                                                     label="Post" labelVisible="true"/>
+                            <lightning:layout pullToBoundary="small" multipleRows="True">                            
+                                <lightning:layoutItem flexibility="auto" size="12" largeDeviceSize="8" class="slds-p-horizontal_small"> 
+                                    <div class="slds-size_1-of-1">
+                                        <p class="slds-text-heading_small slds-p-top_medium weight700">Project Chatter Feed</p> 
+                                    </div>
+                                </lightning:layoutItem>
+                                <lightning:layoutItem flexibility="auto" size="12" largeDeviceSize="4" class=" slds-p-horizontal_small"> 
+                                    <div class="slds-size_1-of-1">
+                                        <div class="slds-p-top_medium" style="float:right">
+                                            <lightning:buttonGroup>   
+                                                <button class="slds-button slds-button--neutral" onclick="{!c.chatterFeedPost}">Share</button>
+                                                <a href="/lightning/page/chatter" class="manualButtonMiddle">
+                                                    <button class="slds-button slds-button_neutral slds-truncate">Chatter</button>
+                                                </a>
+                                                <button class="slds-button slds-button--neutral" onclick="{!c.refreshChatterFeed}">Refresh</button>
+                                            </lightning:buttonGroup>
+                                        </div>
+                                    </div>
+                                </lightning:layoutItem>
+                            </lightning:layout>
+                            <div aura:id="feedContainer" class="feed-container">   
+                                <forceChatter:feed /> 
+                            </div>
+                        </div>
+                    </lightning:tab>
+                </aura:if>
+                
+            </lightning:tabset>                            
+            
+        </div>
+    </article> 
+    
+</aura:component>

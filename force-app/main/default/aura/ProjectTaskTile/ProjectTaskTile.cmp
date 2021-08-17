@@ -1,0 +1,26 @@
+<aura:component>    
+    <aura:attribute name="projectTask" type="ProjectTask__c"/>
+    <aura:attribute name="index" type="Integer"/>
+    <aura:attribute name="formattedPoints" type="String"/>
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+    <aura:registerEvent name="navigateToSObject" type="force:navigateToSObject"/>
+    
+    <div data-id="{#v.index}" draggable="true" ondragstart="{!c.dragStart}" class="slds-p-left_medium">
+        <lightning:layout verticalAlign="center">
+            <lightning:layoutitem >
+                <lightning:icon iconName="utility:rows" size="x-small"></lightning:icon> 
+            </lightning:layoutitem>
+            <lightning:layoutitem flexibility="grow" class="slds-p-vertical_x-small slds-p-horizontal_medium slds-truncate">
+                <div class="{! 'title slds-truncate '+ (v.projectTask.AgouraFree__Blocked__c ? 'blocked' : '') }">
+                    <a href="{!'/lightning/r/AgouraFree__ProjectTask__c/'+v.projectTask.Id+'/view'}">
+                        {#v.projectTask.AgouraFree__Task_Number__c}&nbsp;{#v.projectTask.AgouraFree__Title__c}
+                    </a>
+                </div>
+                <div>                    
+                    <span class="{!v.projectTask.AgouraFree__Formatted_Status__c}">{!v.formattedPoints}&nbsp;Point</span> 
+                    <span>&nbsp;{#v.projectTask.AgouraFree__Formatted_Type__c}</span>
+                </div>
+            </lightning:layoutitem>
+        </lightning:layout>
+    </div>     
+</aura:component>

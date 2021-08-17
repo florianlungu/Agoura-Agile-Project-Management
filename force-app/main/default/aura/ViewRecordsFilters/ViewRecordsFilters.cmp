@@ -1,0 +1,113 @@
+<aura:component controller="ViewControllerExt">
+    <aura:attribute name="view" type="String"/>
+    <aura:attribute name="assignedKey" type="String" default=""/>
+    <aura:attribute name="canCreateAnchorStory" type="boolean"/> 
+    <aura:attribute name="canCreateTag" type="boolean"/> 
+    <aura:attribute name="showView" type="String"/>
+    <aura:attribute name="hasProjects" type="boolean" default="false"/>
+    
+	<aura:registerEvent name="filterChange" type="c:ViewRecordsFilterChange" />
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+
+    <div class="c-container">
+        <lightning:layout multipleRows="true">
+            <lightning:layoutItem size="12" largeDeviceSize="3">
+                <div class="slds-p-horizontal_x-small slds-truncate">             
+                    <p class="slds-form-element__label">
+                        <aura:if isTrue="{!v.view == 'Home'}"> 
+                            Title
+                            <aura:set attribute="else">
+                                Search
+                            </aura:set>
+                        </aura:if>
+                    </p>
+                    <c:SearchBar onchange="{!c.searchKeyChangeHandler}" />
+                </div>
+            </lightning:layoutItem>
+            <aura:if isTrue="{!or(v.showView == '1',v.showView == '3')}">
+                <lightning:layoutItem size="12" largeDeviceSize="1">
+                    <div class="slds-p-horizontal_x-small slds-truncate">
+                        <c:StatusSelector view="{!v.view}" onchange="{!c.statusKeyChangeHandler}" />
+                    </div>
+                </lightning:layoutItem>
+                <lightning:layoutItem size="12" largeDeviceSize="1">
+                    <div class="slds-p-horizontal_x-small slds-truncate">
+                        <c:AssignedSelector selectedValue="{!v.assignedKey}" onchange="{!c.assignedKeyChangeHandler}" />
+                    </div>
+                </lightning:layoutItem>
+            </aura:if>
+            <lightning:layoutItem size="12" largeDeviceSize="1">
+                <div class="slds-p-horizontal_x-small slds-truncate">
+                    <c:RowSelector onchange="{!c.rowKeyChangeHandler}" />
+                </div>
+            </lightning:layoutItem>
+            <lightning:layoutItem size="12" largeDeviceSize="5">
+                <div class="slds-m-top_medium slds-p-horizontal_x-small" style="padding-top:0.6em">
+                    <lightning:buttonGroup>                       
+                        <lightning:button variant="neutral" label="Refresh" onclick="{!c.refreshRecordList}" />   
+                        
+                        <aura:if isTrue="{!v.showView == '1'}">                                   
+                            <a href="{!'/lightning/o/AgouraFree__Project__c/new'}" class="manualButtonMiddle">
+                                <button class="slds-button slds-button_neutral slds-truncate">New Project</button>
+                            </a>
+                            <lightning:buttonMenu alternativeText="Show menu" class="slds-button_last DropDownRight" onselect="{!c.handleMenuSelect}">
+                                <aura:if isTrue="{!v.canCreateAnchorStory == true}">
+                                    <lightning:menuItem label="New Anchor Story" value="New Anchor Story" href="/lightning/o/AgouraFree__AnchorStory__c/new" /> 
+                                </aura:if>                                   
+                                <lightning:menuItem label="New Idea Board" value="New Idea Board" href="/lightning/o/AgouraFree__IdeaBoard__c/new" /> 
+                                <aura:if isTrue="{!v.canCreateTag == true}">
+                                    <lightning:menuItem label="New Tag" value="New Tag" href="/lightning/o/AgouraFree__Tag__c/new" />
+                                </aura:if>
+                            </lightning:buttonMenu>
+                        </aura:if> 
+                        
+                        <aura:if isTrue="{!v.view == 'Anchor Stories'}"> 
+                            <aura:if isTrue="{!v.canCreateAnchorStory == true}">
+                                <a href="{!'/lightning/o/AgouraFree__AnchorStory__c/new'}" class="manualButtonMiddle">
+                                    <button class="slds-button slds-button_neutral slds-truncate">New Anchor Story</button>
+                                </a>                                   
+                            </aura:if>
+                            <lightning:buttonMenu alternativeText="Show menu" class="slds-button_last DropDownRight" onselect="{!c.handleMenuSelect}">
+                                <lightning:menuItem label="New Idea Board" value="New Idea Board" href="/lightning/o/AgouraFree__IdeaBoard__c/new" /> 
+                                <lightning:menuItem label="New Project" value="New Project" href="/lightning/o/AgouraFree__Project__c/new" /> 
+                                <aura:if isTrue="{!v.canCreateTag == true}">
+                                    <lightning:menuItem label="New Tag" value="New Tag" href="/lightning/o/AgouraFree__Tag__c/new" />
+                                </aura:if>
+                            </lightning:buttonMenu>
+                        </aura:if>
+                        
+                        <aura:if isTrue="{!v.view == 'Idea Boards'}"> 
+                            <a href="{!'/lightning/o/AgouraFree__IdeaBoard__c/new'}" class="manualButtonMiddle">
+                                <button class="slds-button slds-button_neutral slds-truncate">New Idea Board</button>
+                            </a> 
+                            <lightning:buttonMenu alternativeText="Show menu" class="slds-button_last DropDownRight" onselect="{!c.handleMenuSelect}">
+                                <aura:if isTrue="{!v.canCreateAnchorStory == true}">
+                                    <lightning:menuItem label="New Anchor Story" value="New Anchor Story" href="/lightning/o/AgouraFree__AnchorStory__c/new" /> 
+                                </aura:if>
+                                <lightning:menuItem label="New Project" value="New Project" href="/lightning/o/AgouraFree__Project__c/new" /> 
+                                <aura:if isTrue="{!v.canCreateTag == true}">
+                                    <lightning:menuItem label="New Tag" value="New Tag" href="/lightning/o/AgouraFree__Tag__c/new" />
+                                </aura:if>
+                            </lightning:buttonMenu>
+                        </aura:if>
+                        
+                        <aura:if isTrue="{!v.view == 'Tags'}"> 
+                            <aura:if isTrue="{!v.canCreateTag == true}">
+                                <a href="{!'/lightning/o/AgouraFree__Tag__c/new'}" class="manualButtonMiddle">
+                                    <button class="slds-button slds-button_neutral slds-truncate">New Tag</button>
+                                </a> 
+                            </aura:if>
+                            <lightning:buttonMenu alternativeText="Show menu" class="slds-button_last DropDownRight" onselect="{!c.handleMenuSelect}">
+                                <aura:if isTrue="{!v.canCreateAnchorStory == true}">
+                                    <lightning:menuItem label="New Anchor Story" value="New Anchor Story" href="/lightning/o/AgouraFree__AnchorStory__c/new" /> 
+                                </aura:if>
+                                <lightning:menuItem label="New Idea Board" value="New Idea Board" href="/lightning/o/AgouraFree__IdeaBoard__c/new" /> 
+                                <lightning:menuItem label="New Project" value="New Project" href="/lightning/o/AgouraFree__Project__c/new" /> 
+                            </lightning:buttonMenu>
+                        </aura:if>                        
+                    </lightning:buttonGroup>   
+                </div>
+            </lightning:layoutItem>
+        </lightning:layout>
+    </div>
+</aura:component>

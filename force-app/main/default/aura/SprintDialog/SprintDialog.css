@@ -1,0 +1,7 @@
+.THIS .fullWidth .slds-dropdown-trigger {
+    width:100%;
+    display: inline-block;
+}
+.THIS .slds-input__icon_right[title="Remove"] {
+    display: none !important;
+}

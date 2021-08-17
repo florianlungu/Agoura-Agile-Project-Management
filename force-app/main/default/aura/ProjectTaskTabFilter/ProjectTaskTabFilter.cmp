@@ -1,0 +1,56 @@
+<aura:component controller="ProjectControllerExt">
+    <aura:attribute name="recStr" type="String" default=""/>
+    <aura:attribute name="unassignedPoints" type="String" default="0"/>
+    <aura:attribute name="sprintCadence" type="String" default="??"/>
+    <aura:attribute name="fieldLabelMapTasks" type="Map" default="{}"/>
+    <aura:registerEvent name="filterChange" type="c:ProjectTaskTabFilterChange"/>
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+    
+    <!-- Project Task Filters -->
+    <div class="c-container">
+        <lightning:layout multipleRows="true">
+            <lightning:layoutItem size="12" largeDeviceSize="3">
+                <div class="slds-p-horizontal_x-small slds-truncate">             
+                    <p class="slds-form-element__label">{!v.fieldLabelMapTasks.AgouraFree__Title__c}</p>
+                    <c:SearchBar onchange="{!c.searchKeyChangeHandler}" />
+                </div>
+            </lightning:layoutItem>
+            <lightning:layoutItem size="12" largeDeviceSize="2">
+                <div class="slds-p-horizontal_x-small slds-truncate">
+                    <c:ProjectTypeSelector onchange="{!c.typeKeyChangeHandler}" fieldLabel="{!v.fieldLabelMapTasks.AgouraFree__Type__c}"/>
+                </div>
+            </lightning:layoutItem>
+            <lightning:layoutItem size="12" largeDeviceSize="1">
+                <div class="slds-p-horizontal_x-small slds-truncate">
+                    <c:RowSelector onchange="{!c.rowKeyChangeHandler}" />
+                </div>
+            </lightning:layoutItem>
+            <lightning:layoutItem size="12" largeDeviceSize="2">
+                <div class="slds-p-horizontal_x-small slds-truncate">
+                    <c:SprintKeySelector recStr="{!v.recStr}" onchange="{!c.sprintKeyChangeHandler}" />
+                </div>
+            </lightning:layoutItem>
+            <lightning:layoutItem size="12" largeDeviceSize="1">
+                <div class="slds-p-horizontal_x-small slds-truncate">
+                    <p class="slds-text-title slds-m-top_x-small slds-m-bottom_x-small">Backlog</p>
+                    <span>{!v.unassignedPoints} Points</span>
+                </div>
+            </lightning:layoutItem>
+            <lightning:layoutItem size="12" largeDeviceSize="1">
+                <aura:if isTrue="{!v.sprintCadence != '??'}">
+                    <div class="slds-p-horizontal_x-small slds-truncate">
+                        <p class="slds-text-title slds-m-top_x-small slds-m-bottom_x-small">3 Sprint Average</p>
+                        <span>{!v.sprintCadence} Points</span>
+                    </div>
+                </aura:if>
+            </lightning:layoutItem>
+            <lightning:layoutItem size="12" largeDeviceSize="2">
+                <div class="slds-p-top_xx-small" style="float:right;">
+                    <ul class="slds-button-group-list slds-m-top_medium slds-p-top_xx-small">
+                        <li><button class="slds-button slds-button_neutral" onclick="{!c.refreshProjectTasksList}">Refresh</button></li>
+                    </ul>             
+                </div>
+            </lightning:layoutItem>
+        </lightning:layout>
+    </div>
+</aura:component>

@@ -1,0 +1,3 @@
+<aura:component implements="lightning:actionOverride"> 
+    <c:ObjectListView viewName="Idea Boards" iconName="standard:solution"/>
+</aura:component>

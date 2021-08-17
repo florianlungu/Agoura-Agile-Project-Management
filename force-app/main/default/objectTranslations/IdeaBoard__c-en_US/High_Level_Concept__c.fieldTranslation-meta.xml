@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomFieldTranslation xmlns="http://soap.sforce.com/2006/04/metadata">
+    <label><!-- High Level Concept --></label>
+    <name>High_Level_Concept__c</name>
+</CustomFieldTranslation>

@@ -1,0 +1,16 @@
+<aura:component controller="ProjectSortControllerExt">
+    <aura:attribute type="String" name="recStr" default=""/>
+  	<aura:registerEvent name="onchange" type="c:ValueChange"/>	
+    <ltng:require scripts="{!$Resource.DataCache}" afterScriptsLoaded="{!c.afterScriptsLoaded}"/>    
+    <aura:attribute name="sprintKeys" type="String[]" />
+    <aura:attribute name="selectedValue" type="String" default="BacklogLatest"/>
+
+    <lightning:select name="sprintSelector" label="Sprint" value="{!v.selectedValue}" onchange="{!c.changeHandler}">
+        <option value="All"></option>  
+        <option value="Backlog">Backlog</option> 
+        <option value="BacklogLatest">Backlog and Latest Sprint</option>  
+        <aura:iteration items="{!v.sprintKeys}" var="sprintKey">
+            <option text="{!'Sprint ' + sprintKey}" value="{#sprintKey}"/>
+        </aura:iteration>
+    </lightning:select>
+</aura:component>

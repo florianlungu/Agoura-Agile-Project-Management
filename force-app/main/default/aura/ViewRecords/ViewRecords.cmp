@@ -1,0 +1,171 @@
+<aura:component controller="ViewControllerExt">
+    <aura:attribute name="view" type="String"/>
+    <aura:attribute name="canCreateAnchorStory" type="boolean"/> 
+    <aura:attribute name="canCreateTag" type="boolean"/>
+    <aura:attribute name="showView" type="String"/>
+    <aura:attribute name="filterObject" type="Object"/>
+    <aura:attribute name="pageSize" type="Integer" default="10"/>
+    <aura:attribute name="page" type="Integer"/>
+    <aura:attribute name="pages" type="Integer"/>
+    <aura:attribute name="total" type="Integer"/>
+    <aura:attribute name="viewTotal" type="String"/>
+    <aura:attribute name="itemList" type="Object[]" default="[]" />
+    <aura:attribute name="fieldLabelMap" type="Map" default="{ AgouraFree__Title__c: 'Title', AgouraFree__Status__c: 'Status' }"/>	
+    
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+    <aura:handler event="c:ViewRecordsFilterChange" action="{!c.filterChangeHandler}"/>
+    
+    <div class="slds-grid slds-gutters slds-p-top_large slds-p-horizontal_small slds-p-bottom_xx-small">
+        <div class="slds-col slds-size_1-of-1">
+            <lightning:layout multipleRows="true">
+                <lightning:layoutItem size="12" largeDeviceSize="9">
+                    <div style="width:100%">
+                        <p class="slds-text-heading_small weight700">{!v.viewTotal}</p>
+                    </div>
+                </lightning:layoutItem>
+                <lightning:layoutItem size="12" largeDeviceSize="3">
+                    <div style="float:right;">
+                        <c:Paginator page="{!v.page}" pages="{!v.pages}" pageSize="{!v.pageSize}" total="{!v.total}" label="records"
+                                     previousPage="{!c.onPreviousPage}" firstPage="{!c.onFirstPage}" 
+                                     nextPage="{!c.onNextPage}" lastPage="{!c.onLastPage}"/>
+                    </div>
+                </lightning:layoutItem>
+            </lightning:layout>
+        </div>
+    </div>
+    
+    <div class="slds-p-bottom_large"> 
+        <table class="agouraTable">
+            <thead>
+                <tr> 
+                    <aura:if isTrue="{!v.showView == '1'}">
+                        <th><span class="slds-p-right_small">Unique Id</span></th> 
+                    </aura:if>
+                    <th style="width:30vw">
+                        <lightning:icon iconName="standard:apps" size="small" class="slds-m-right_small agouraIcon"
+                                        style="visibility:hidden"/>{!v.fieldLabelMap.AgouraFree__Title__c}
+                        <aura:if isTrue="{!v.showView == '2'}">
+                            {!v.fieldLabelMap.Name}
+                        </aura:if>
+                    </th> 
+                    <aura:if isTrue="{!v.showView == '1'}">
+                        <th><span class="slds-p-horizontal_medium">{!v.fieldLabelMap.AgouraFree__Status__c}</span></th> 
+                        <th><span class="slds-p-horizontal_medium">Created</span></th> 
+                        <th><span class="slds-p-horizontal_medium">Last Modified</span></th> 
+                        <th style="width:40px"></th>  
+                    </aura:if>
+                    <aura:if isTrue="{!v.showView == '2'}">
+                        <th style="width:20vw"><span class="slds-p-horizontal_medium">Available For</span></th> 
+                        <th><span class="slds-p-horizontal_medium">Created</span></th> 
+                        <th><span class="slds-p-horizontal_medium">Last Modified</span></th>  
+                        <th style="width:40px"></th> 
+                    </aura:if>
+                    <aura:if isTrue="{!v.showView == '3'}">
+                        <th style="width:5vw"><span class="slds-p-horizontal_medium">{!v.fieldLabelMap.AgouraFree__Points__c}</span></th> 
+                        <th style="min-width:20vw"><span class="slds-p-horizontal_medium">{!v.fieldLabelMap.AgouraFree__Search_Terms__c}</span></th>  
+                        <th style="width:40px"></th> 
+                    </aura:if>
+                </tr>
+            </thead>
+            <tbody>
+                
+                <!-- Home, Idea Boards, Project Tasks, Projects, Sprints -->
+                <aura:if isTrue="{!v.showView == '1'}">
+                    <aura:iteration items="{!v.itemList}" var="item"> 
+                        <tr data-id="{!item.id}" > 
+                            <td><span class="slds-p-right_small" title="{!item.uniqueId}">{!item.uniqueId}</span></td>
+                            <td>
+                                <div class="AgouraTableRowIcon">
+                                    <a href="{!'/lightning/r/'+item.objectName+'/'+item.id+'/view'}">                                            
+                                        <p class="{! (item.blocked ? 'blocked' : '') }" title="{!item.title}">
+                                            <lightning:icon iconName="{!item.icon}" size="small" class="slds-m-right_small agouraIcon"/>
+                                            {!item.title}
+                                        </p>
+                                    </a>
+                                </div>
+                            </td> 
+                            <td><span class="slds-p-horizontal_medium" title="{!item.status}">{!item.status}</span></td> 
+                            <td><span class="slds-p-horizontal_medium" title="{!item.createdDate}">
+                                <ui:outputDate value="{!item.createdDate}" /></span></td>
+                            <td><span class="slds-p-horizontal_medium" title="{!item.lastModifiedDate}">
+                                <ui:outputDate value="{!item.lastModifiedDate}" /></span></td>  
+                            <td>
+                                <aura:if isTrue="{!item.canEdit}">
+                                    <div><a href="{!'/lightning/r/'+item.objectName+'/'+item.id+'/edit'}">
+                                        <lightning:buttonIcon iconName="utility:edit" variant="bare" size="medium" class="toggle"
+                                                              alternativeText="Edit" />
+                                        </a></div>
+                                </aura:if>
+                            </td>
+                        </tr> 
+                    </aura:iteration>
+                </aura:if>
+                
+                <!-- Tags -->
+                <aura:if isTrue="{!v.showView == '2'}">
+                    <aura:iteration items="{!v.itemList}" var="item"> 
+                        <tr data-id="{!item.id}" > 
+                            <td>
+                                <div class="AgouraTableRowIcon" style="width:30vw">
+                                    <a href="{!'/lightning/r/'+item.objectName+'/'+item.id+'/view'}">                                            
+                                        <p class="{! (item.blocked ? 'blocked' : '') }" title="{!item.title}">
+                                            <lightning:icon iconName="{!item.icon}" size="small" class="slds-m-right_small agouraIcon"/>
+                                            {!item.title}
+                                        </p>
+                                    </a>
+                                </div>
+                            </td> 
+                            <td><span class="slds-p-horizontal_medium" title="{!item.otherString}">{!item.otherString}</span></td> 
+                            <td>
+                                <span class="slds-p-horizontal_medium" title="{!item.createdDate}"><ui:outputDate value="{!item.createdDate}" /></span>
+                            </td>
+                            <td>
+                                <span class="slds-p-horizontal_medium" title="{!item.lastModifiedDate}"><ui:outputDate value="{!item.lastModifiedDate}" /></span> 
+                            </td>                                 
+                            <td>  
+                                <aura:if isTrue="{!v.canCreateTag == true}">
+                                    <div>                          
+                                        <a href="{!'/lightning/r/'+item.objectName+'/'+item.id+'/edit'}">
+                                            <lightning:buttonIcon iconName="utility:edit" variant="bare" size="medium" 
+                                                                  class="toggle slds-p-right_small" alternativeText="Edit" />
+                                        </a>  
+                                    </div> 
+                                </aura:if>
+                            </td>
+                        </tr> 
+                    </aura:iteration>
+                </aura:if>
+                
+                <!-- Anchor Stories -->
+                <aura:if isTrue="{!v.showView == '3'}">
+                    <aura:iteration items="{!v.itemList}" var="item"> 
+                        <tr data-id="{!item.id}" > 
+                            <td>
+                                <div class="AgouraTableRowIcon" style="width:30vw">
+                                    <a href="{!'/lightning/r/'+item.objectName+'/'+item.id+'/view'}">                                            
+                                        <p class="{! (item.blocked ? 'blocked' : '') }" title="{!item.title}">
+                                            <lightning:icon iconName="{!item.icon}" size="small" class="slds-m-right_small agouraIcon"/>
+                                            {!item.title}
+                                        </p>
+                                    </a>
+                                </div>
+                            </td> 
+                            <td><span class="slds-p-horizontal_medium" title="{!item.points}">{!item.points}</span></td> 
+                            <td><span class="slds-p-horizontal_medium" title="{!item.otherString}">{!item.otherString}</span></td>                                 
+                            <td> 
+                                <aura:if isTrue="{!v.canCreateAnchorStory == true}">
+                                    <div>                          
+                                        <a href="{!'/lightning/r/'+item.objectName+'/'+item.id+'/edit'}">
+                                            <lightning:buttonIcon iconName="utility:edit" variant="bare" size="medium" 
+                                                                  class="toggle slds-p-right_small" alternativeText="Edit" />
+                                        </a>  
+                                    </div> 
+                                </aura:if>
+                            </td>
+                        </tr> 
+                    </aura:iteration>
+                </aura:if>
+            </tbody>
+        </table>
+    </div>
+</aura:component>

@@ -1,0 +1,14 @@
+.THIS .DropDownRight > .slds-dropdown_left {
+    left: auto !important;
+    right: 0 !important;
+    transform: translateX(0) !important;
+}
+.THIS .DropDownRight > .slds-dropdown_left > ul > li > a > span {
+    padding:0 1.5em;
+}
+.THIS .manualButtonMiddle > button {
+    border-radius: 0 !important;
+    border-right:0 !important;
+    border-left:0 !important;
+    height: 2.5em;
+}

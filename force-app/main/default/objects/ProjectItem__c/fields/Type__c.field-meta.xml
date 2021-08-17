@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Type__c</fullName>
+    <deprecated>false</deprecated>
+    <description>OK to update field label but do not change picklist options</description>
+    <externalId>false</externalId>
+    <label>Type</label>
+    <required>true</required>
+    <trackHistory>false</trackHistory>
+    <trackTrending>false</trackTrending>
+    <type>Picklist</type>
+    <valueSet>
+        <restricted>true</restricted>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value>
+                <fullName>Executive Sponsor</fullName>
+                <default>false</default>
+                <label>Executive Sponsor</label>
+            </value>
+            <value>
+                <fullName>Product Owner</fullName>
+                <default>false</default>
+                <label>Product Owner</label>
+            </value>
+            <value>
+                <fullName>Project Goal</fullName>
+                <default>false</default>
+                <label>Project Goal</label>
+            </value>
+            <value>
+                <fullName>Project Link</fullName>
+                <default>false</default>
+                <label>Project Link</label>
+            </value>
+            <value>
+                <fullName>Project Milestone</fullName>
+                <default>false</default>
+                <label>Project Milestone</label>
+            </value>
+            <value>
+                <fullName>Project Document Owner</fullName>
+                <default>false</default>
+                <label>Project Record Owner</label>
+            </value>
+            <value>
+                <fullName>Project Risk</fullName>
+                <default>false</default>
+                <label>Project Risk</label>
+            </value>
+            <value>
+                <fullName>Project Stakeholder</fullName>
+                <default>false</default>
+                <label>Project Stakeholder</label>
+            </value>
+            <value>
+                <fullName>Project Swim Lane</fullName>
+                <default>false</default>
+                <label>Project Swim Lane</label>
+            </value>
+            <value>
+                <fullName>Project Team Member</fullName>
+                <default>false</default>
+                <label>Project Team Member</label>
+            </value>
+            <value>
+                <fullName>Scrum Master</fullName>
+                <default>false</default>
+                <label>Scrum Master</label>
+            </value>
+        </valueSetDefinition>
+    </valueSet>
+</CustomField>

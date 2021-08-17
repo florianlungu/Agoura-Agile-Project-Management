@@ -1,0 +1,9 @@
+.THIS .slds-pill__remove {
+    display: none !important;
+}
+.THIS .slds-pill__action {
+    padding-right: 0.35rem !important;
+}
+.THIS .agouraIcon {
+    background-color: rgba(0,112,192,.8);
+}

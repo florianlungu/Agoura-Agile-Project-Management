@@ -1,0 +1,6 @@
+<aura:event type="APPLICATION" description="Event template">
+    <aura:attribute name="searchKey" type="String"/>
+    <aura:attribute name="typeKey" type="String"/>
+    <aura:attribute name="rowKey" type="String"/>
+    <aura:attribute name="sprintKey" type="String"/>
+</aura:event>

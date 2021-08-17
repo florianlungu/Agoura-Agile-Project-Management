@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Sprint__c</fullName>
+    <deleteConstraint>SetNull</deleteConstraint>
+    <deprecated>false</deprecated>
+    <externalId>false</externalId>
+    <label>Sprint</label>
+    <lookupFilter>
+        <active>true</active>
+        <filterItems>
+            <field>$Source.Project__c</field>
+            <operation>equals</operation>
+            <valueField>Sprint__c.Project__r.Id</valueField>
+        </filterItems>
+        <isOptional>false</isOptional>
+    </lookupFilter>
+    <referenceTo>Sprint__c</referenceTo>
+    <relationshipLabel>Project Tasks</relationshipLabel>
+    <relationshipName>Project_Tasks</relationshipName>
+    <required>false</required>
+    <trackFeedHistory>false</trackFeedHistory>
+    <trackHistory>false</trackHistory>
+    <trackTrending>false</trackTrending>
+    <type>Lookup</type>
+</CustomField>

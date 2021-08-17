@@ -1,0 +1,380 @@
+<aura:component controller="SprintControllerExt" access="global">
+    <aura:attribute name="record" type="Id" />
+    <aura:attribute name="targetFields" type="Sprint__c" />
+    <aura:attribute name="recordError" type="String" default=""/>
+    <aura:attribute name="hasEditAccess" type="boolean" default="false"/>    
+    <aura:attribute name="hasDeleteAccess" type="boolean" default="false"/>
+    <aura:attribute name="showConfirmDeleteModal" type="boolean" default="false"/>
+    <aura:attribute name="showConfirmDeleteToast" type="boolean" default="false"/>
+    <aura:attribute name="projectSelection" type="List" default="[]"/>
+    <aura:attribute name="windowTitle" type="String" />
+    <aura:attribute name="refreshWait" type="boolean" default="true" />
+    <aura:attribute name="fieldLabelMap" type="Map" default="{}"/>		
+    <aura:attribute name="fieldLabelMapTasks" type="Map" default="{}"/>	
+    
+    <!-- Sprint Task List -->
+    <ltng:require scripts="{!$Resource.countup}" />
+    <aura:attribute name="isTileView" type="Boolean" default="true"/>
+    <aura:attribute name="columns" type="List"/>
+    <aura:attribute name="columnsNoEdit" type="List"/>
+    <aura:attribute name="columnsNoRemove" type="List"/>
+    <aura:attribute name="recordId" type="Id"/>
+    <aura:attribute name="sprintTaskItems" type="Object[]" default="[]"/>
+    <aura:attribute name="burnUpChartData" type="Object[]" default="[]"/>
+    <aura:attribute name="sprintPoints" type="Decimal" default="0"/>
+    <aura:attribute name="targetPoints" type="Decimal" default="0"/>
+    <aura:attribute name="completedPoints" type="Decimal" default="0"/>
+    <aura:attribute name="showChart" type="Boolean" default="false"/>
+    <aura:attribute name="projectTasksSortedBy" type="String" default="Name"/>
+    <aura:attribute name="projectTasksSortedDirection" type="String" default="asc"/>
+    <aura:attribute name="projectSwimLaneSelection" type="Object[]"/> 
+    <aura:attribute name="projectSwimLanesList" type="Object[]"/> 
+    <aura:attribute name="assignedToList" type="List" default="[]"/>  
+    <aura:attribute name="isDesktop" type="String"/>
+    <aura:attribute name="showRemoveButton" type="boolean" default="false"/> 
+    
+    <!-- Backlog -->
+    <aura:registerEvent name="filterChange" type="c:ProjectTaskFilterChange" />
+    <aura:attribute name="items" type="ProjectTask__c[]"/>
+    <aura:attribute name="filterObject" type="Object"/>
+    <aura:attribute name="pageSize" type="Integer" default="7"/>
+    <aura:attribute name="page" type="Integer"/>
+    <aura:attribute name="pages" type="Integer"/>
+    <aura:attribute name="total" type="Integer"/> 
+    <aura:handler event="c:ProjectTaskFilterChange" action="{!c.filterChangeHandler}"/>
+       
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+    
+    <!-- Display Lightning Data Service errors, if any -->
+    <aura:if isTrue="{!not(empty(v.recordError))}">
+        <div class="recordError">
+            <ui:message title="Error" severity="error" closable="true">
+                {!v.recordError}
+            </ui:message>
+        </div>
+    </aura:if>
+    
+    <!-- Confirm Delete Modal -->
+    <aura:if isTrue="{!v.showConfirmDeleteModal}">
+        <div role="dialog" tabindex="-1" aria-labelledby="header99" class="slds-modal slds-fade-in-open ">
+            <div class="slds-modal__container">
+                <div class="slds-modal__header">
+                    <button class="slds-button slds-modal__close slds-button--icon-inverse" title="Close" onclick="{!c.closeConfirmDelete}">
+                        X
+                        <span class="slds-assistive-text">Close</span>
+                    </button>
+                    <h2 id="header99" class="slds-text-heading--medium">Delete Sprint</h2>
+                </div>   
+                <div class="slds-modal__content slds-p-around--medium">
+                    <div class="slds-align_absolute-center" style="height: 5rem;">
+                        <lightning:icon size="medium" iconName="action:delete" alternativeText="Confirm Delete" />
+                        <span class="slds-p-around_medium">Are you sure you want to delete this Sprint?</span>
+                    </div>
+                </div>
+                <div class="slds-modal__footer">
+                    <button class="slds-button slds-button--neutral" onclick="{!c.closeConfirmDelete}" >Cancel</button>
+                    <button class="slds-button slds-button--brand" onclick="{!c.deleteRecord}">Delete</button>
+                </div>
+            </div>
+        </div>
+        <div class="slds-backdrop slds-backdrop--open"></div>
+    </aura:if>
+    
+    <article id="forceRecord" onmouseover="{!c.updateWebPageTitle}">
+        <lightning:layout pullToBoundary="small" multipleRows="True" class="outerPadding"> 
+            <lightning:layoutItem flexibility="auto" size="12" largeDeviceSize="12" class="innerPadding" aura:id="sprintDetails">
+                
+                <!-- Sprint Task List -->
+                <div class="slds-card slds-m-bottom_small slds-p-vertical_medium slds-p-horizontal_medium shrinkMarginTop" aura:id="sprintTasks">
+                    <div class="header">
+                        <div class="headerItem">
+                            <div style="float:left;" class="slds-m-bottom_small">
+                                <div class="slds-p-right_medium" style="float:left;"><lightning:icon iconName="standard:work_order" class="agouraIcon"/></div>                                
+                                <div class="slds-show" style="max-width:450px; float:left;" aura:id="sprintDetailsPlus">
+                                    <p class="slds-text-heading_small slds-p-bottom_x-small"><b>
+                                        <a href="{!'/lightning/r/AgouraFree__Project__c/'+v.targetFields.AgouraFree__Project__c+'/view'}">
+                                            {!v.targetFields.AgouraFree__Project__r.AgouraFree__Title__c+' '}
+                                        </a><br /><div class="littleSmaller">{!v.targetFields.AgouraFree__Sprint_Name__c}</div></b></p>
+                                    <p class="slds-text-title">Dates: <ui:outputDate value="{!v.targetFields.AgouraFree__Start_Date__c}" /> - <ui:outputDate value="{!v.targetFields.AgouraFree__End_Date__c}" /></p>
+                                    <aura:if isTrue="{!not(empty(v.targetFields.AgouraFree__Version__c))}">
+                                        <p class="slds-text-title">{!v.fieldLabelMap.AgouraFree__Version__c}: {!v.targetFields.AgouraFree__Version__c}</p>
+                                    </aura:if>
+                                    <aura:if isTrue="{!not(empty(v.targetFields.AgouraFree__Sprint_Goal__c))}">
+                                        <p class="slds-text-title">{!v.fieldLabelMap.AgouraFree__Sprint_Goal__c}: {!v.targetFields.AgouraFree__Sprint_Goal__c}</p>
+                                    </aura:if>
+                                </div>
+                            </div>
+                            <div class="clearLeft" style="float:left;" aura:id="headerPointsRow">
+                                <div class="slds-p-left_xx-large slds-p-bottom_medium" style="float:left;" aura:id="headerPointsColumn">
+                                    <p class="slds-text-title slds-truncate slds-m-bottom_xx-small">{!v.fieldLabelMap.AgouraFree__Target_Points__c}</p>
+                                    <p class="slds-text-heading_small slds-truncate">
+                                        <span>{!v.targetPoints}</span>
+                                    </p>
+                                </div>
+                                <div class="slds-p-left_xx-large slds-p-bottom_medium" style="float:left;">
+                                    <p class="slds-text-title slds-truncate slds-m-bottom_xx-small">{!v.fieldLabelMap.AgouraFree__Completed_Points__c}</p>
+                                    <p class="slds-text-heading_small slds-truncate">
+                                        <span>{!v.completedPoints}</span>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="slds-p-bottom_medium headerItem">
+                            <c:SprintTaskChart sprintTaskItems="{!v.sprintTaskItems}" />
+                        </div>
+                        <div class="slds-p-bottom_medium headerItem">
+                            <c:SprintBurnUpChart burnUpChartData="{!v.burnUpChartData}" recStr="{!v.recordId}"/>
+                        </div>
+                    </div>
+                                        
+                    <div class="slds-text-align_center slds-m-bottom_x-small" style="width:100%; display:inline-block;">
+                        <lightning:layout multipleRows="true">
+                            <lightning:layoutItem size="12" smallDeviceSize="12" mediumDeviceSize="4" largeDeviceSize="4">
+                                <lightning:buttonGroup class="slds-float_left">
+                                    <aura:if isTrue="{!and(empty(v.recordError),v.hasEditAccess == true)}">
+                                        <lightning:buttonMenu alternativeText="Show menu" class="DropDownRight" 
+                                                              onselect="{! c.handleMenuSelect }">
+                                            <lightning:menuItem label="Current Sprint" value="Current"
+                                                                href="{!'/lightning/cmp/AgouraFree__CurrentSprint?AgouraFree__project='+v.targetFields.AgouraFree__Project__c}" />
+                                            <lightning:menuItem label="Edit Sprint" value="Edit"
+                                                                href="{!'/lightning/r/AgouraFree__Sprint__c/'+v.recordId+'/edit'}" />
+                                            <aura:if isTrue="{!and(empty(v.recordError),v.hasDeleteAccess == true)}">
+                                                <lightning:menuItem label="Delete Sprint" value="Delete" />
+                                            </aura:if>                                                    
+                                            <lightning:menuItem label="New Project Sprint" value="New Project Sprint"
+                                                                href="{!'/lightning/o/AgouraFree__Sprint__c/new?AgouraFree__project='+v.targetFields.AgouraFree__Project__c}" /> 
+                                        </lightning:buttonMenu>
+                                        <lightning:buttonIcon iconName="utility:add" onclick="{!c.newProjectTask}" 
+                                                              title="New Project Task" alternativeText="New Project Task" />
+                                    </aura:if>
+                                    <aura:if isTrue="{!v.isTileView}">
+                                        <lightning:buttonIcon iconName="utility:table" onclick="{!c.toggleListMode}"                                                           
+                                                              title="Show Tasks as List" alternativeText="Show Tasks as List" />
+                                        <aura:set attribute="else">
+                                            <lightning:buttonIcon iconName="utility:apps" onclick="{!c.toggleListMode}"
+                                                                  title="Show Kanban Board" alternativeText="Show Kanban Board" />
+                                        </aura:set>
+                                    </aura:if>
+                                    <lightning:buttonIcon iconName="utility:refresh" onclick="{!c.refreshSprint}" 
+                                                          title="Refresh Sprint Task List" alternativeText="Refresh Sprint Task List" />
+                                </lightning:buttonGroup>
+                            </lightning:layoutItem>
+                            
+                            <lightning:layoutItem size="12" smallDeviceSize="12" mediumDeviceSize="4" largeDeviceSize="4">
+                                <p class="slds-text-body_regular">
+                                    Sprint contains {!v.sprintTaskItems.length} tasks for {!v.sprintPoints} points
+                                </p>
+                            </lightning:layoutItem>
+                            <lightning:layoutItem size="12" smallDeviceSize="12" mediumDeviceSize="4" largeDeviceSize="4">
+                                <div class="slds-p-right_xx-small" style="float:right">   
+                                    <lightning:buttonGroup>
+                                        <lightning:button variant="neutral" label="Done Adding Tasks" onclick="{!c.hideProjectBacklog}" 
+                                                          class="slds-hide hideBacklogIcon FirstButtonStyle" aura:id="hideBacklogIcon" />                                    
+                                        <lightning:button variant="neutral" label="Add Tasks to Sprint" onclick="{!c.showProjectBacklog}" 
+                                                          class="slds-show FirstButtonStyle" aura:id="showBacklogIcon" />                                    
+                                        <lightning:button variant="neutral" label="Retrospective" onclick="{!c.showRetrospective}" 
+                                                          class="slds-show LastButtonStyle" aura:id="RetrospectiveButton2" />
+                                        <lightning:button variant="neutral" label="Hide Retrospective" onclick="{!c.showDetails}" 
+                                                          class="slds-hide LastButtonStyle" aura:id="DetailsButton2" />
+                                    </lightning:buttonGroup>
+                                </div>
+                            </lightning:layoutItem>                            
+                            </lightning:layout>
+                        
+                        <!-- Retrospective -->
+                        <div id="contentRetrospective" aura:id="contentRetrospective"  style="text-align: left;"
+                             class="slds-tabs_default__content slds-hide slds-p-horizontal_large" role="tabpanel" aria-labelledby="tabRetrospective">
+                            <div class="slds-text-heading_small slds-m-bottom_small"><b>Sprint Retrospective</b></div>
+                            <lightning:layout pullToBoundary="small" multipleRows="True">                            
+                                <lightning:layoutItem flexibility="auto" size="12" largeDeviceSize="6" class="slds-p-horizontal_small"> 
+                                    <div class="slds-size_1-of-1 slds-p_large slds-m-bottom_large" style="white-space:pre-wrap">
+                                        <b><p class="slds-text-title slds-m-bottom_xx-small">{!v.fieldLabelMap.AgouraFree__What_went_well__c}</p></b>
+                                        <span>{!v.targetFields.AgouraFree__What_went_well__c}</span>
+                                    </div>
+                                </lightning:layoutItem>                       
+                                <lightning:layoutItem flexibility="auto" size="12" largeDeviceSize="6" class="slds-p-horizontal_small"> 
+                                    <div class="slds-size_1-of-1 slds-p_large slds-m-bottom_large" style="white-space:pre-wrap">
+                                        <b><p class="slds-text-title slds-m-bottom_xx-small">{!v.fieldLabelMap.AgouraFree__What_did_not_go_well__c}</p></b>
+                                        <span>{!v.targetFields.AgouraFree__What_did_not_go_well__c}</span>
+                                    </div>
+                                </lightning:layoutItem>                       
+                                <lightning:layoutItem flexibility="auto" size="12" largeDeviceSize="12" class="slds-p-horizontal_small"> 
+                                    <div class="slds-size_1-of-1 slds-p_large" style="white-space:pre-wrap">
+                                        <b><p class="slds-text-title slds-m-bottom_xx-small">{!v.fieldLabelMap.AgouraFree__What_can_we_do_different_next_time__c}</p></b>
+                                        <span>{!v.targetFields.AgouraFree__What_can_we_do_different_next_time__c}</span>
+                                    </div>
+                                </lightning:layoutItem>
+                            </lightning:layout>
+                        </div>
+                    </div>
+                    
+                    <div aura:id="dropZone" class="drop-zone" ondrop="{!c.dropHandler}" ondragover="{!c.dragOverHandler}" 
+                         ondragleave="{!c.dragLeaveHandler}">
+                        
+                        <aura:if isTrue="{!v.isTileView}">
+                            <div>                    
+                                <aura:iteration items="{!v.projectSwimLaneSelection}" var="projectSwimLane">
+                                    <div class="swimLane">
+                                        <aura:if isTrue="{!projectSwimLane != ''}">
+                                            <div class="slds-m-vertical_xx-small slds-p-around_xx-small swimLaneTitle">
+                                                <lightning:icon iconName="action:flow" alternativeText="Swim Lane" class="agouraIcon"/>
+                                                {!projectSwimLane}
+                                            </div>
+                                        </aura:if>
+                                        <div>
+                                            <lightning:layout multipleRows="true">
+                                                <lightning:layoutItem size="12" smallDeviceSize="12" mediumDeviceSize="4" largeDeviceSize="4">
+                                                    <div class="kanbanTitle">To do</div>
+                                                    <div class="taskList">
+                                                        <aura:iteration items="{!v.sprintTaskItems}" var="sprintTaskItem" indexVar="index"> 
+                                                            <aura:if isTrue="{!sprintTaskItem.swimLaneTitle == projectSwimLane}">
+                                                                <aura:if isTrue="{!sprintTaskItem.status == 'Open'}">
+                                                                    <div>
+                                                                        <c:SprintTaskTile sprintTaskItem="{#sprintTaskItem}" index="{#index}"
+                                                                                          projectSwimLanesList="{!v.projectSwimLanesList}"
+                                                                                          assignedToList="{!v.assignedToList}"
+                                                                                          onStart="{!c.sprintTaskItemStartHandler}" 
+                                                                                          onComplete="{!c.sprintTaskItemCompleteHandler}" 
+                                                                                          onEdit="{!c.sprintTaskItemEditHandler}" 
+                                                                                          onChangeSwimLane="{!c.sprintTaskItemChangeSLHandler}" 
+                                                                                          onRemove="{!c.sprintTaskItemRemoveHandler}" 
+                                                                                          hasEditAccess="{!v.hasEditAccess}"
+                                                                                          showRemoveButton="{!v.showRemoveButton}"/>
+                                                                    </div>                                            
+                                                                </aura:if>
+                                                            </aura:if>
+                                                        </aura:iteration>
+                                                    </div>
+                                                </lightning:layoutItem> 
+                                                <lightning:layoutItem size="12" smallDeviceSize="12" mediumDeviceSize="4" largeDeviceSize="4">
+                                                    <div class="kanbanTitle">Doing</div>
+                                                    <div class="taskList">
+                                                        <aura:iteration items="{!v.sprintTaskItems}" var="sprintTaskItem" indexVar="index"> 
+                                                            <aura:if isTrue="{!sprintTaskItem.swimLaneTitle == projectSwimLane}">
+                                                                <aura:if  isTrue="{!or(or(or(sprintTaskItem.status == 'Done', sprintTaskItem.status == 'Resolved'), sprintTaskItem.status == 'Canceled'), sprintTaskItem.status == 'Open')}">
+                                                                    <!-- dont show -->
+                                                                    <aura:set attribute="else">
+                                                                        <div>
+                                                                            <c:SprintTaskTile sprintTaskItem="{#sprintTaskItem}" index="{#index}"
+                                                                                              projectSwimLanesList="{!v.projectSwimLanesList}"
+                                                                                              assignedToList="{!v.assignedToList}"
+                                                                                              onStart="{!c.sprintTaskItemStartHandler}" 
+                                                                                              onComplete="{!c.sprintTaskItemCompleteHandler}" 
+                                                                                              onEdit="{!c.sprintTaskItemEditHandler}" 
+                                                                                              onChangeSwimLane="{!c.sprintTaskItemChangeSLHandler}" 
+                                                                                              onRemove="{!c.sprintTaskItemRemoveHandler}" 
+                                                                                              hasEditAccess="{!v.hasEditAccess}"
+                                                                                              showRemoveButton="{!v.showRemoveButton}"/>
+                                                                        </div>  
+                                                                    </aura:set>
+                                                                </aura:if>
+                                                            </aura:if>
+                                                        </aura:iteration>
+                                                    </div>
+                                                </lightning:layoutItem> 
+                                                <lightning:layoutItem size="12" smallDeviceSize="12" mediumDeviceSize="4" largeDeviceSize="4">
+                                                    <div class="kanbanTitle">Done</div>
+                                                    <div class="taskList">
+                                                        <aura:iteration items="{!v.sprintTaskItems}" var="sprintTaskItem" indexVar="index"> 
+                                                            <aura:if isTrue="{!sprintTaskItem.swimLaneTitle == projectSwimLane}">
+                                                                <aura:if  isTrue="{!or(or(sprintTaskItem.status == 'Done', sprintTaskItem.status == 'Resolved'), sprintTaskItem.status == 'Canceled')}">
+                                                                    <div>
+                                                                        <c:SprintTaskTile sprintTaskItem="{#sprintTaskItem}" index="{#index}"
+                                                                                          projectSwimLanesList="{!v.projectSwimLanesList}"
+                                                                                          assignedToList="{!v.assignedToList}"
+                                                                                          onStart="{!c.sprintTaskItemStartHandler}" 
+                                                                                          onComplete="{!c.sprintTaskItemCompleteHandler}" 
+                                                                                          onEdit="{!c.sprintTaskItemEditHandler}" 
+                                                                                          onChangeSwimLane="{!c.sprintTaskItemChangeSLHandler}" 
+                                                                                          onRemove="{!c.sprintTaskItemRemoveHandler}" 
+                                                                                          hasEditAccess="{!v.hasEditAccess}"
+                                                                                          showRemoveButton="{!v.showRemoveButton}"/>
+                                                                    </div>                                            
+                                                                </aura:if>
+                                                            </aura:if>
+                                                        </aura:iteration>
+                                                    </div>
+                                                </lightning:layoutItem> 
+                                                
+                                            </lightning:layout>
+                                        </div>
+                                    </div>
+                                </aura:iteration>
+                            </div>
+                            <aura:set attribute="else">
+                                <div>                           
+                                    <aura:if isTrue="{!v.hasEditAccess}">
+                                        <aura:if isTrue="{!v.showRemoveButton}">
+                                            <lightning:datatable data="{!v.sprintTaskItems}" 
+                                                                 columns="{!v.columns}" 
+                                                                 keyField="title"
+                                                                 hideCheckboxColumn="true"
+                                                                 onsort="{!c.updateProjectTasksColumnSorting}"
+                                                                 sortedBy="{!v.projectTasksSortedBy}"  
+                                                                 sortedDirection="{!v.projectTasksSortedDirection}"
+                                                                 onrowaction="{!c.handleProjectTasksRowAction}"/>                                             
+                                            <aura:set attribute="else">
+                                                <lightning:datatable data="{!v.sprintTaskItems}" 
+                                                                     columns="{!v.columnsNoRemove}" 
+                                                                     keyField="title"
+                                                                     hideCheckboxColumn="true"
+                                                                     onsort="{!c.updateProjectTasksColumnSorting}"
+                                                                     sortedBy="{!v.projectTasksSortedBy}"  
+                                                                     sortedDirection="{!v.projectTasksSortedDirection}"
+                                                                     onrowaction="{!c.handleProjectTasksRowAction}"/>                                                 
+                                            </aura:set>
+                                        </aura:if>
+                                        <aura:set attribute="else">
+                                            <lightning:datatable data="{!v.sprintTaskItems}" 
+                                                                 columns="{!v.columnsNoEdit}" 
+                                                                 keyField="title"
+                                                                 hideCheckboxColumn="true"
+                                                                 onsort="{!c.updateProjectTasksColumnSorting}"
+                                                                 sortedBy="{!v.projectTasksSortedBy}"  
+                                                                 sortedDirection="{!v.projectTasksSortedDirection}"
+                                                                 onrowaction="{!c.handleProjectTasksRowAction}"/>
+                                        </aura:set>
+                                    </aura:if>                         
+                                </div>
+                            </aura:set>
+                        </aura:if>
+                        
+                    </div>
+                </div>
+            </lightning:layoutItem>
+                       
+            <lightning:layoutItem flexibility="auto" size="12" largeDeviceSize="4" class="innerPadding slds-hide" aura:id="projectBacklog">
+                <lightning:card title="Project Task Filters" iconName="custom:custom39">
+                    <div class="slds-grid slds-gutters slds-wrap slds-p-horizontal_medium">
+                        <div class="slds-col slds-size_1-of-2">
+                            <div class="slds-p-left_xx-small">
+                                <p class="slds-form-element__label">{!v.fieldLabelMapTasks.AgouraFree__Title__c}</p>
+                                <c:SearchBar onchange="{!c.searchKeyChangeHandler}" />
+                            </div>
+                        </div>
+                        <div class="slds-col slds-size_1-of-2">
+                            <div class="slds-p-right_xx-small">
+                                <c:TypeKeySelector onchange="{!c.typeKeyChangeHandler}" fieldLabel="{!v.fieldLabelMapTasks.AgouraFree__Type__c}"/>
+                            </div>
+                        </div>
+                    </div>        
+                </lightning:card>
+                
+                <lightning:card title="{! 'Project Task Backlog (' + v.total + ')'}" iconName="standard:task">  
+                    <aura:set attribute="actions">
+                        <c:Paginator page="{!v.page}" pages="{!v.pages}" pageSize="{!v.pageSize}" total="{!v.total}" label="tasks" 
+                                     previousPage="{!c.onPreviousPage}" firstPage="{!c.onFirstPage}" 
+                                     nextPage="{!c.onNextPage}" lastPage="{!c.onLastPage}"/>
+                    </aura:set>
+                    <div class="projectTaskBacklog">
+                        <aura:iteration items="{!v.items}" var="item" indexVar="index">
+                            <lightning:layoutitem size="12">
+                                <c:ProjectTaskTile projectTask="{#item}" index="{#index}"/>
+                            </lightning:layoutitem>
+                        </aura:iteration>
+                    </div>        
+                </lightning:card>   
+            </lightning:layoutItem>            
+        </lightning:layout>
+    </article>  
+</aura:component>

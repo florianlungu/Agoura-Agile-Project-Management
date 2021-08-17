@@ -1,0 +1,49 @@
+<aura:component>
+	<aura:attribute name="label" type="String" required="true"/>
+    <aura:attribute name="choices" type="List" required="false"/>
+        
+    <p class="slds-text-title slds-m-bottom_x-small">Work Days</p>
+    <div class="slds-grid slds-wrap" style="clear:left;">
+        <div class="slds-col slds-size--1-of-7 weekDays-selector-header">Sun</div>
+        <div class="slds-col slds-size--1-of-7 weekDays-selector-header">Mon</div>
+        <div class="slds-col slds-size--1-of-7 weekDays-selector-header">Tue</div>
+        <div class="slds-col slds-size--1-of-7 weekDays-selector-header">Wed</div>
+        <div class="slds-col slds-size--1-of-7 weekDays-selector-header">Thu</div>
+        <div class="slds-col slds-size--1-of-7 weekDays-selector-header">Fri</div>
+        <div class="slds-col slds-size--1-of-7 weekDays-selector-header">Sat</div>
+        
+        <aura:if isTrue="{!v.choices.length > 0}">
+            <aura:if isTrue="{!v.choices[0].day == 'Mon'}">
+                <div class="slds-col slds-size--1-of-7">&nbsp;</div>                         
+            </aura:if>
+            <aura:if isTrue="{!v.choices[0].day == 'Tue'}">
+                <div class="slds-col slds-size--2-of-7">&nbsp;</div>                        
+            </aura:if>
+            <aura:if isTrue="{!v.choices[0].day == 'Wed'}">
+                <div class="slds-col slds-size--3-of-7">&nbsp;</div>                          
+            </aura:if>
+            <aura:if isTrue="{!v.choices[0].day == 'Thu'}">
+                <div class="slds-col slds-size--4-of-7">&nbsp;</div>                         
+            </aura:if>
+            <aura:if isTrue="{!v.choices[0].day == 'Fri'}">
+                <div class="slds-col slds-size--5-of-7">&nbsp;</div>                         
+            </aura:if>
+            <aura:if isTrue="{!v.choices[0].day == 'Sat'}">
+                <div class="slds-col slds-size--6-of-7">&nbsp;</div>                         
+            </aura:if>
+        </aura:if>            
+        
+        <aura:iteration items="{!v.choices}" var="item">
+            <div class="slds-col slds-size--1-of-7 slds-p-around_xx-small weekDays-selector">
+                <aura:if isTrue="{!item.isSelected}">
+                    <input name="workDays" id="{!'weekday-'+item.label}" value="{!item.value}" type="checkbox" class="weekday" checked="true" />                    
+                    <aura:set attribute="else">
+                        <input name="workDays" id="{!'weekday-'+item.label}" value="{!item.value}" type="checkbox" class="weekday" />                        
+                    </aura:set>
+                </aura:if>
+                <label for="{!'weekday-'+item.label}" class="slds-p-around_x-small slds-truncate">{!item.label}</label>
+            </div>  
+        </aura:iteration>
+    </div>
+    
+</aura:component>

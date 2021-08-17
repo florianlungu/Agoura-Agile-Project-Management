@@ -1,0 +1,4 @@
+<aura:event type="APPLICATION" description="Event template">
+	<aura:attribute name="sprintTaskItem" type="ProjectTask__c" />
+	<aura:attribute name="swimLaneId" type="Id" />
+</aura:event>

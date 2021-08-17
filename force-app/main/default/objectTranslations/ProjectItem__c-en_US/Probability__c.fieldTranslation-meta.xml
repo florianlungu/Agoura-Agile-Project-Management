@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomFieldTranslation xmlns="http://soap.sforce.com/2006/04/metadata">
+    <label><!-- Probability --></label>
+    <name>Probability__c</name>
+    <picklistValues>
+        <masterLabel>High</masterLabel>
+        <translation><!-- High --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Low</masterLabel>
+        <translation><!-- Low --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Medium-high</masterLabel>
+        <translation><!-- Medium-high --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Medium-low</masterLabel>
+        <translation><!-- Medium-low --></translation>
+    </picklistValues>
+</CustomFieldTranslation>

@@ -1,0 +1,67 @@
+<aura:component implements="lightning:isUrlAddressable" controller="ViewControllerExt">
+    <aura:attribute name="windowTitle" type="String" />
+    <aura:attribute name="userInfo" type="Object[]" />
+    <aura:attribute name="orgInfo" type="String" />
+    <aura:attribute name="showConfirmSentModal" type="boolean" default="false"/>
+    <aura:attribute name="hasProjects" type="boolean" default="false"/>
+    
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+    
+    <!-- Confirm Feedback Sent Modal -->
+    <aura:if isTrue="{!v.showConfirmSentModal}">
+        <div role="dialog" tabindex="-1" aria-labelledby="header99" class="slds-modal slds-fade-in-open ">
+            <div class="slds-modal__container">
+                <div class="slds-modal__header">
+                    <h2 id="header99" class="slds-text-heading--medium">Help Request Confirmation</h2>
+                </div>   
+                <div class="slds-modal__content slds-p-around_xx-large">
+                    <div class="slds-align_absolute-center" style="height: 5rem;">
+                        <lightning:icon size="medium" iconName="utility:like" alternativeText="Confirm Delete" />
+                        <span class="slds-p-around_medium">Thank you, your help request has been sent. If you have provided contact information,
+                        we will respond to you as soon as possible.</span>
+                    </div>
+                </div>
+                <div class="slds-modal__footer">
+                    <button class="slds-button slds-button--brand" onclick="{!c.cancelDialog}">OK</button>
+                </div>
+            </div>
+        </div>
+        <div class="slds-backdrop slds-backdrop--open"></div>
+    </aura:if>
+    
+    <aura:if isTrue="{!v.showConfirmSentModal == false}">
+        <div aura:id="editDialog" role="dialog" tabindex="-1" aria-labelledby="header43" class="slds-modal slds-fade-in-open" 
+             style="padding-top: 7em" onmouseover="{!c.updateWebPageTitle}">
+            <div class="modal-container slds-modal__container">
+                <div class="slds-modal__header">
+                    <h2 class="slds-text-heading--medium">Agoura Help</h2>
+                </div>
+                <div class="slds-modal__content slds-p-around--medium slds-grid slds-wrap ">  
+                    <lightning:input aura:id="propName" name="propName" value="{!v.userInfo[0].Name}" 
+                                     label="Name" class="slds-size--2-of-2 slds-p-around_x-small" />
+                    <lightning:input aura:id="propTitle" name="propTitle" value="{!v.userInfo[0].Title}" 
+                                     label="Title" class="slds-size--1-of-2 slds-p-around_x-small" />  
+                    <lightning:input aura:id="propCompany" name="propCompany" value="{!v.userInfo[0].CompanyName}" 
+                                     label="Company" class="slds-size--1-of-2 slds-p-around_x-small" />   
+                    <lightning:input aura:id="propPhone" name="propPhone" value="{!v.userInfo[0].Phone}" type="tel" 
+                                     label="Phone" class="slds-size--1-of-2 slds-p-around_x-small" />  
+                    <lightning:input aura:id="propMobile" name="propMobile" value="{!v.userInfo[0].MobilePhone}" type="tel" 
+                                     label="Mobile" class="slds-size--1-of-2 slds-p-around_x-small" />  
+                    <lightning:input aura:id="propEmail" name="propEmail" value="{!v.userInfo[0].Email}" type="email"  
+                                     label="Email" class="slds-size--1-of-2 slds-p-around_x-small" /> 
+                    <lightning:input aura:id="propOrgId" name="propOrgId" value="{!v.orgInfo}" 
+                                     label="Salesforce Organization Id" class="slds-size--1-of-2 slds-p-around_x-small" />
+                    <lightning:textarea aura:id="propFeedback" name="propFeedback"  
+                                        label="Question or Feedback" class="slds-size--2-of-2 slds-p-around_x-small bigly"
+                                         placeholder="Is there anything Agoura Software can help you with?" />                     
+                </div>
+                <div class="slds-modal__footer"> 
+                    <lightning:button variant="neutral" label="Cancel" onclick="{!c.cancelDialog}"/>
+                    <lightning:button variant="brand" label="Submit" onclick="{!c.submitFeedback}"/>
+                </div>
+            </div>
+        </div>
+    </aura:if>
+    <div aura:id="overlay" class="slds-backdrop slds-backdrop--open"></div>
+    
+</aura:component>

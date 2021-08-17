@@ -1,0 +1,37 @@
+.THIS .chart{
+    position: relative;
+    text-align: center;
+    width: 100px;
+    height: 80px;
+}
+.THIS .slds-text-heading--medium {
+    margin-bottom: 12px;
+}
+.THIS .legend {
+    width: 10px;
+    height: 10px;
+}
+.THIS .legend.open {
+	background-color: rgba(11,111,206,.8);
+}
+.THIS .legend.inprogress {
+	background-color: rgba(51,204,255,.8);
+}
+.THIS .legend.readytotest {
+	background-color: rgba(249,111,183,.8);
+}
+.THIS .legend.testing {
+	background-color: rgba(168,69,220,.8);
+}
+.THIS .legend.readytodeploy {
+	background-color: rgba(255,204,51,.8);
+}
+.THIS .legend.canceled {
+	background-color: rgba(102,102,102,.8);
+}
+.THIS .legend.resolved {
+	background-color: rgba(65,146,73,.8);
+}
+.THIS .legend.done {
+	background-color: rgba(120,201,83,.8);
+}

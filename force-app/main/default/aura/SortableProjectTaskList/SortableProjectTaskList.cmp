@@ -1,0 +1,145 @@
+<aura:component controller="ProjectSortControllerExt">
+    <aura:attribute name="recStr" type="String" default=""/> 
+    <aura:attribute name="canSortBacklog" type="boolean" default="false"/> 
+    <aura:attribute name="filterObject" type="Object"/>
+    <aura:attribute name="pageSize" type="Integer" default="10"/>
+    <aura:attribute name="page" type="Integer"/>
+    <aura:attribute name="pages" type="Integer"/>
+    <aura:attribute name="total" type="Integer"/>
+    <aura:attribute name="isDesktop" type="String" default=""/>
+    <aura:attribute name="fieldLabelMapTasks" type="Map" default="{}"/>
+    
+    <ltng:require scripts="{!join(',', $Resource.jqueryjs,$Resource.jqueryUi)}" afterScriptsLoaded="{!c.doinit}"/>
+    
+    <aura:attribute name="projectTasks" type="ProjectTask__c[]"/>
+    <aura:attribute name="projectTaskSortList" type="ProjectTask__c[]"/>
+    <aura:attribute name="bropped" type="boolean" default="true"/>
+    <aura:attribute name="newIndex" type="integer"/>
+    <aura:attribute name="oldIndex" type="integer"/>
+    
+    <aura:handler name="change" value="{!v.bropped}" action="{!c.doaction}"/>
+    <aura:handler event="c:ProjectTaskTabFilterChange" action="{!c.filterChangeHandler}"/>
+    
+    <!-- Add Project Task -->
+    <div class="slds-grid slds-gutters slds-p-top_x-large slds-p-horizontal_small slds-p-bottom_xx-small">
+        <div class="slds-col_bump-right" style="width:400px">
+            <p class="slds-text-heading_small weight700">{! 'Project Task List (' + v.total + ')'}</p>
+        </div>                  
+        <div>
+            <c:Paginator page="{!v.page}" pages="{!v.pages}" pageSize="{!v.pageSize}" total="{!v.total}" label="tasks"
+                              previousPage="{!c.onPreviousPage}" firstPage="{!c.onFirstPage}" 
+                              nextPage="{!c.onNextPage}" lastPage="{!c.onLastPage}"/>
+        </div>
+    </div>
+    
+    <div class="slds-p-bottom_large">
+        <!-- Tasks -->  
+        <table class="agouraTable">
+            <thead>
+                <tr> 
+                    <th style="width:30px" class="{!v.isDesktop}"></th> 
+                    <th style="width:4.5vw">{!v.fieldLabelMapTasks.AgouraFree__Order__c}</th> 
+                    <th class="slds-hide">Id</th> 
+                    <th style="width:28px"></th>
+                    <th style="width:25vw">{!v.fieldLabelMapTasks.AgouraFree__Title__c}</th> 
+                    <th style="width:9vw">{!v.fieldLabelMapTasks.AgouraFree__Type__c}</th> 
+                    <th style="width:9vw">{!v.fieldLabelMapTasks.AgouraFree__Status__c}</th> 
+                    <th style="width:6vw">{!v.fieldLabelMapTasks.AgouraFree__Points__c}</th> 
+                    <th class="{!v.isDesktop}" style="width:6vw">Created</th> 
+                    <th class="{!v.isDesktop}" style="width:6vw">{!v.fieldLabelMapTasks.AgouraFree__Due_Date__c}</th> 
+                    <th class="{!v.isDesktop}">{!v.fieldLabelMapTasks.AgouraFree__Priority__c}</th> 
+                    <th class="{!v.isDesktop}">Sprint</th> 
+                    <th style="width:12vw">{!v.fieldLabelMapTasks.AgouraFree__Assigned_To__c}</th>  
+                    <th style="width:100px"></th> 
+                </tr>
+            </thead>
+            <tbody id="sortable" >
+                <aura:iteration items="{!v.projectTasks}" var="pt" indexVar="index"> 
+                    <aura:if isTrue="{!and(empty(pt.AgouraFree__Order__c) == false,v.canSortBacklog == true)}">
+                        <tr class="ui-state-default" data-id="{!pt.Id}" > 
+                            <td class="{!v.isDesktop}">
+                                <lightning:icon iconName="utility:rows" size="x-small"></lightning:icon> 
+                            </td>
+                            <td><span title="{!pt.AgouraFree__Order__c}">{!pt.AgouraFree__Order__c}</span></td>                   
+                            <td class="slds-hide">{!pt.Id}</td> 
+                            <td>
+                                <span title="{!pt.AgouraFree__Task_Number__c + ' ' + pt.AgouraFree__Title__c}">
+                                    <a href="{!'/lightning/r/AgouraFree__ProjectTask__c/'+pt.Id+'/view'}">
+                                        <lightning:buttonIcon iconName="utility:info" variant="bare" size="medium" 
+                                                              class="{!pt.AgouraFree__Formatted_Status__c}"/> 
+                                    </a>
+                                </span>
+                            </td>
+                            <td>
+                                <p class="{! (pt.AgouraFree__Blocked__c ? 'blocked' : '') }" 
+                                   title="{!pt.AgouraFree__Task_Number__c + ' ' + pt.AgouraFree__Title__c}">
+                                    <a href="{!'/lightning/r/AgouraFree__ProjectTask__c/'+pt.Id+'/view'}">{!pt.AgouraFree__Task_Number__c}</a>
+                                    {!' '+pt.AgouraFree__Title__c}
+                                </p>
+                            </td> 
+                            <td><span title="{!pt.AgouraFree__Formatted_Type__c}">{!pt.AgouraFree__Formatted_Type__c}</span></td> 
+                            <td><span title="{!pt.AgouraFree__Status__c}">{!pt.AgouraFree__Status__c}</span></td> 
+                            <td><span title="{!pt.AgouraFree__Points__c}">{!pt.AgouraFree__Points__c}</span></td>
+                            <td class="{!v.isDesktop}">
+                                <span title="{!pt.CreatedDate}"><ui:outputDate value="{!pt.CreatedDate}" /></span>
+                            </td>
+                            <td class="{!v.isDesktop}">
+                                <span title="{!pt.AgouraFree__Due_Date__c}"><ui:outputDate value="{!pt.AgouraFree__Due_Date__c}" /></span>
+                            </td> 
+                            <td class="{!v.isDesktop}"><span title="{!pt.AgouraFree__Priority__c}">{!pt.AgouraFree__Priority__c}</span></td> 
+                            <td class="{!v.isDesktop}"><span title="{!pt.AgouraFree__Sprint__r.AgouraFree__Sprint_Name__c}">{!pt.AgouraFree__Sprint__r.AgouraFree__Sprint_Name__c}</span></td> 
+                            <td><span title="{!pt.AgouraFree__Assigned_To__r.Name}">{!pt.AgouraFree__Assigned_To__r.Name}</span></td> 
+                            <td>      
+                                <div>                          
+                                    <a href="{!'/lightning/r/AgouraFree__ProjectTask__c/'+pt.Id+'/edit'}">
+                                        <lightning:buttonIcon iconName="utility:edit" variant="bare" size="medium" 
+                                                              class="toggle slds-p-right_small" alternativeText="Edit Task" />
+                                    </a>
+                                    <lightning:buttonIcon iconName="utility:arrowdown" variant="bare" size="medium" class="toggle slds-p-right_small"
+                                                          onclick="{!c.toBottomTaskHandler}" value="{!index}" alternativeText="Move to Bottom" />  
+                                    <lightning:buttonIcon iconName="utility:arrowup" variant="bare" size="medium" class="toggle slds-p-right_small"
+                                                          onclick="{!c.toTopTaskHandler}" value="{!index}" alternativeText="Move to Top" />  
+                                </div> 
+                            </td>
+                        </tr> 
+                        <aura:set attribute="else">
+                            <tr class="ui-state-disabled" data-id="{!pt.Id}"> 
+                                <td class="{!v.isDesktop}"></td>
+                                <td><span title="{!pt.AgouraFree__Order__c}">{!pt.AgouraFree__Order__c}</span></td>                   
+                                <td class="slds-hide">{!pt.Id}</td> 
+                                <td>
+                                    <span title="{!pt.AgouraFree__Task_Number__c + ' ' + pt.AgouraFree__Title__c}">
+                                        <a href="{!'/lightning/r/AgouraFree__ProjectTask__c/'+pt.Id+'/view'}">
+                                            <lightning:buttonIcon iconName="utility:info" variant="bare" size="medium" 
+                                                                  class="{!pt.AgouraFree__Formatted_Status__c}"/> 
+                                        </a>
+                                    </span>
+                                </td>
+                                <td>
+                                    <p class="{! (pt.AgouraFree__Blocked__c ? 'blocked' : '') }" 
+                                       title="{!pt.AgouraFree__Task_Number__c + ' ' + pt.AgouraFree__Title__c}">
+                                        <a href="{!'/lightning/r/AgouraFree__ProjectTask__c/'+pt.Id+'/view'}">{!pt.AgouraFree__Task_Number__c}</a>
+                                        {!' '+pt.AgouraFree__Title__c}
+                                    </p>
+                            </td>
+                                <td><span title="{!pt.AgouraFree__Formatted_Type__c}">{!pt.AgouraFree__Formatted_Type__c}</span></td> 
+                                <td><span title="{!pt.AgouraFree__Status__c}">{!pt.AgouraFree__Status__c}</span></td> 
+                                <td><span title="{!pt.AgouraFree__Points__c}">{!pt.AgouraFree__Points__c}</span></td>
+                                <td class="{!v.isDesktop}">
+                                    <span title="{!pt.CreatedDate}"><ui:outputDate value="{!pt.CreatedDate}" /></span>
+                                </td>
+                                <td class="{!v.isDesktop}">
+                                    <span title="{!pt.AgouraFree__Due_Date__c}"><ui:outputDate value="{!pt.AgouraFree__Due_Date__c}" /></span>                                 
+                                </td> 
+                                <td class="{!v.isDesktop}"><span title="{!pt.AgouraFree__Priority__c}">{!pt.AgouraFree__Priority__c}</span></td> 
+                                <td class="{!v.isDesktop}"><span title="{!pt.AgouraFree__Sprint__r.AgouraFree__Sprint_Name__c}">{!pt.AgouraFree__Sprint__r.AgouraFree__Sprint_Name__c}</span></td> 
+                                <td><span title="{!pt.AgouraFree__Assigned_To__r.Name}">{!pt.AgouraFree__Assigned_To__r.Name}</span></td> 
+                                <td></td>
+                            </tr>                                  
+                        </aura:set>
+                    </aura:if>
+                </aura:iteration>
+            </tbody>
+        </table>
+    </div>     
+</aura:component>

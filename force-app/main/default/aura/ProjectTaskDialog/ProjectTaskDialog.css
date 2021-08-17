@@ -1,0 +1,26 @@
+.THIS .fullWidth .slds-dropdown-trigger {
+    width:100%;
+    display: inline-block;
+}
+.THIS .bigly textarea {
+    height:15em;
+}
+.THIS .last textarea {
+    margin-bottom: 3em;
+}
+.THIS lightning-checkbox-group > fieldset > legend {
+    font-weight: normal !important;
+}
+.THIS div#propProject.slds-text-title.slds-truncate.slds-align-bottom 
+div.slds-form-element.AgouraLookup 
+div.slds-form-element__control 
+div.slds-combobox_container.slds-has-inline-listbox 
+div.slds-combobox.slds-dropdown-trigger.slds-dropdown-trigger_click.slds-combobox-lookup 
+div.slds-combobox__form-element.slds-input-has-icon.slds-input-has-icon_left-right 
+button.slds-button.slds-input__icon.slds-input__icon_right[title="Remove"] {
+    display: none !important;
+}
+.THIS .clearTimeLoggedIcon {
+    float:right;
+    border-width:0;
+}

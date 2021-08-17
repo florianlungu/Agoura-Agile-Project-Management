@@ -1,0 +1,3 @@
+<aura:component implements="lightning:actionOverride"> 
+    <c:ObjectListView viewName="Tags" iconName="standard:topic"/>
+</aura:component>

@@ -1,0 +1,195 @@
+<aura:component implements="lightning:actionOverride,flexipage:availableForRecordHome,force:hasRecordId" 
+                controller="TagControllerExt" access="global">
+    <aura:attribute name="record" type="Id" />
+    <aura:attribute name="targetFields" type="Tag__c" />
+    <aura:attribute name="recordError" type="String" default=""/>
+    <aura:attribute name="hasEditAccess" type="boolean" default="false"/>    
+    <aura:attribute name="hasDeleteAccess" type="boolean" default="false"/>
+    <aura:attribute name="showCompleteButton" type="boolean" default="false"/> 
+    <aura:attribute name="showConfirmDeleteModal" type="boolean" default="false"/>
+    <aura:attribute name="showConfirmDeleteToast" type="boolean" default="false"/>
+    <aura:attribute name="showConfirmModal" type="boolean" default="false"/>
+    <aura:attribute name="showConfirmTitle" type="String"/>
+    <aura:attribute name="showConfirmAsk" type="String"/>
+    <aura:attribute name="createdByList" type="List" default="[]"/>	
+    <aura:attribute name="lastModifiedByList" type="List" default="[]"/>
+    <aura:attribute name="ownerList" type="List" default="[]"/>	
+    <aura:attribute name="windowTitle" type="String" />
+    <aura:attribute name="recordNewOwnerSelection" type="List" default="[]"/>
+    <aura:attribute name="hasProjects" type="boolean" default="false"/>
+    
+    <force:recordData aura:id="record"
+                      recordId="{!v.recordId}"
+                      targetError="{!v.recordError}"
+                      targetRecord="{!v.record}"
+                      targetFields="{!v.targetFields}"
+                      recordUpdated="{!c.handleRecordUpdated}"
+                      fields="Id, Name, AgouraFree__For_IdeaBoards__c, AgouraFree__For_ProjectTasks__c, AgouraFree__For_Projects__c, CreatedDate, LastModifiedDate"
+                      mode="VIEW" />
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+    
+    <!-- Display Lightning Data Service errors, if any -->
+    <aura:if isTrue="{!not(empty(v.recordError))}">
+        <div class="recordError">
+            <ui:message title="Error" severity="error" closable="true">
+                {!v.recordError}
+            </ui:message>
+        </div>
+    </aura:if>
+    
+    <!-- Confirm Modal -->
+    <aura:if isTrue="{!v.showConfirmModal}">
+        <div role="dialog" tabindex="-1" aria-labelledby="header99" class="slds-modal slds-fade-in-open ">
+            <div class="slds-modal__container">
+                <div class="slds-modal__header">
+                    <button class="slds-button slds-modal__close slds-button--icon-inverse" title="Close" onclick="{!c.closeConfirm}">
+                        X
+                        <span class="slds-assistive-text">Close</span>
+                    </button>
+                    <h2 id="header99" class="slds-text-heading--medium">{!v.showConfirmTitle}</h2>
+                </div>   
+                <div class="slds-modal__content slds-p-around--medium">
+                    <div class="slds-align_absolute-center" style="min-height: 5rem;">                        
+                        <aura:if isTrue="{!v.showConfirmTitle == 'Change Owner'}">
+                            <span class="slds-p-around_medium">{!v.showConfirmAsk}<br /><br /> 
+                                <c:Lookup aura:id="propNewOwner" selection="{!v.recordNewOwnerSelection}" 
+                                          onSearch="{!c.lookupNewOwnerSearch}" label="Record Owner" placeholder="Search Users"
+                                          isRequired="true"/>
+                            </span> 
+                        </aura:if>                       
+                    </div>
+                </div>
+                <div class="slds-modal__footer">
+                    <button class="slds-button slds-button--neutral" onclick="{!c.closeConfirm}">Cancel</button>                    
+                    <aura:if isTrue="{!v.showConfirmTitle == 'Change Owner'}">
+                        <button class="slds-button slds-button--brand" onclick="{!c.changeOwner}">Change Owner</button>
+                    </aura:if>                    
+                </div>
+            </div>
+        </div>
+        <div class="slds-backdrop slds-backdrop--open"></div>
+    </aura:if>
+    
+    <!-- Confirm Delete Modal -->
+    <aura:if isTrue="{!v.showConfirmDeleteModal}">
+        <div role="dialog" tabindex="-1" aria-labelledby="header99" class="slds-modal slds-fade-in-open ">
+            <div class="slds-modal__container">
+                <div class="slds-modal__header">
+                    <button class="slds-button slds-modal__close slds-button--icon-inverse" title="Close" onclick="{!c.closeConfirmDelete}">
+                        X
+                        <span class="slds-assistive-text">Close</span>
+                    </button>
+                    <h2 id="header99" class="slds-text-heading--medium">Delete Tag</h2>
+                </div>   
+                <div class="slds-modal__content slds-p-around--medium">
+                    <div class="slds-align_absolute-center" style="height: 5rem;">
+                        <lightning:icon size="medium" iconName="action:delete" alternativeText="Confirm Delete" />
+                        <span class="slds-p-around_medium">Are you sure you want to delete this Tag?</span>
+                    </div>
+                </div>
+                <div class="slds-modal__footer">
+                    <button class="slds-button slds-button--neutral" onclick="{!c.closeConfirmDelete}" >Cancel</button>
+                    <button class="slds-button slds-button--brand" onclick="{!c.deleteRecord}">Delete</button>
+                </div>
+            </div>
+        </div>
+        <div class="slds-backdrop slds-backdrop--open"></div>
+    </aura:if>
+    
+    <!-- Header -->
+    <article id="forceRecord" onmouseover="{!c.updateWebPageTitle}">
+        <div class="slds-card slds-m-bottom_small">
+            <header class="slds-p-horizontal_medium">   
+                <lightning:layout pullToBoundary="small" multipleRows="True">                            
+                    <lightning:layoutItem flexibility="auto" size="12" largeDeviceSize="8" class="slds-p-horizontal_small"> 
+                        <div class="slds-size_1-of-1 slds-p-bottom_small">
+                            <div class="slds-media__figure slds-p-top_medium" style="float:left;">
+                                <lightning:icon iconName="standard:topic" alternativeText="Tag" class="agouraIcon"/>
+                            </div>
+                            <div class="slds-media__body slds-p-top_small">
+                                <p>Tag</p>  
+                                <h1 class="slds-page-header__title slds-truncate slds-align-bottom" 
+                                    title="{!v.targetFields.Name}">
+                                    {!v.targetFields.Name}
+                                </h1>
+                            </div>
+                        </div>
+                    </lightning:layoutItem>
+                    <lightning:layoutItem flexibility="auto" size="12" largeDeviceSize="4" class=" slds-p-horizontal_small"> 
+                        <div class="slds-size_1-of-1">
+                            <div class=" slds-p-bottom_small slds-p-top_medium" style="float:right">
+                                <lightning:buttonGroup>                                    
+                                    <aura:if isTrue="{!and(empty(v.recordError),v.hasEditAccess == true)}"> 
+                                        <lightning:buttonMenu alternativeText="Show menu" class="slds-button_last DropDownRight" 
+                                                              onselect="{!c.handleMenuSelect}">                                         
+                                            <lightning:menuItem label="Change Owner" value="Change Owner" />
+                                            <lightning:menuItem label="Delete" value="Delete" />
+                                            <lightning:menuItem label="Edit" value="Edit" />
+                                            <lightning:menuItem label="New Tag" value="New Tag"
+                                                                href="{!'/lightning/o/AgouraFree__Tag__c/new'}" />  
+                                        </lightning:buttonMenu>
+                                    </aura:if>                                    
+                                </lightning:buttonGroup>
+                            </div>
+                        </div>
+                    </lightning:layoutItem>
+                </lightning:layout>
+            </header>
+        </div>
+        
+        <!-- Body -->
+        <div class="slds-card slds-p-horizontal_medium slds-p-vertical_x-small">
+            <div class="slds-grid slds-gutters slds-p-top_small">
+                <div class="slds-col slds-size_1-of-1">
+                    <div class="slds-size_1-of-1 slds-p-bottom_large" style="white-space:pre-wrap">
+                        <p class="slds-text-title slds-m-bottom_xx-small">Available for</p>
+                        <lightning:input type="checkbox" label="Idea Boards" name="forIdeaBoards" 
+                                         checked="{!v.targetFields.AgouraFree__For_IdeaBoards__c}" disabled="true"/>
+                        <aura:if isTrue="{!v.hasProjects}">
+                            <lightning:input type="checkbox" label="Projects" name="forProjects" 
+                                             checked="{!v.targetFields.AgouraFree__For_Projects__c}" disabled="true"/>
+                            <lightning:input type="checkbox" label="Project Tasks" name="forProjectTasks" 
+                                             checked="{!v.targetFields.AgouraFree__For_ProjectTasks__c}" disabled="true"/>
+                        </aura:if>
+                    </div>
+                </div>
+            </div>            
+            <div class="slds-grid slds-gutters slds-p-top_xxx-small">
+                <div class="slds-col slds-size_1-of-2">
+                    <div class="slds-size_1-of-1 slds-p-bottom_large" style="white-space:pre-wrap">
+                        <p class="slds-text-title slds-m-bottom_xx-small">Created By</p>
+                        <div id="{! globalId + '_selection' }" role="listbox" aria-orientation="horizontal">
+                            <c:LookupDisplay selection="{!v.createdByList}" />
+                            <span class="slds-m-top_xxx-small slds-p-top_xx-small" style="display:inline-block;vertical-align:top;"> on <ui:outputDateTime value="{!v.targetFields.CreatedDate}" /></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="slds-col slds-size_1-of-2">
+                    <div class="slds-size_1-of-1 slds-p-bottom_large" style="white-space:pre-wrap">
+                        <p class="slds-text-title slds-m-bottom_xx-small">Last Modified By</p>
+                        <div id="{! globalId + '_selection' }" role="listbox" aria-orientation="horizontal">
+                            <c:LookupDisplay selection="{!v.lastModifiedByList}" />
+                            <span class="slds-m-top_xxx-small slds-p-top_xx-small" style="display:inline-block;vertical-align:top;"> on <ui:outputDateTime value="{!v.targetFields.LastModifiedDate}" /></span>
+                        </div>  
+                    </div>
+                </div>
+            </div>          
+            <div class="slds-grid slds-gutters slds-p-top_xxx-small">
+                <div class="slds-col slds-size_1-of-2">
+                    <div class="slds-size_1-of-1 slds-p-bottom_large" style="white-space:pre-wrap">
+                        <p class="slds-text-title slds-m-bottom_xx-small">Record Owner</p>
+                        <div id="{! globalId + '_selection' }" role="listbox" aria-orientation="horizontal">
+                            <c:LookupDisplay selection="{!v.ownerList}" />
+                        </div>
+                    </div>
+                </div>
+                <div class="slds-col slds-size_1-of-2">
+                    <div class="slds-size_1-of-1 slds-p-bottom_large" style="white-space:pre-wrap">
+                        <p class="slds-text-title slds-m-bottom_xx-small">Salesforce Id</p>
+                        <p class="slds-text-body_regular">{!v.targetFields.Id}</p>
+                    </div>
+                </div>
+            </div>			
+        </div>  
+    </article>  
+</aura:component>

@@ -1,0 +1,13 @@
+<aura:component controller="ViewControllerExt">
+    <aura:attribute name="view" type="String"/>
+    <aura:registerEvent name="onchange" type="c:ValueChange"/>	
+    <ltng:require scripts="{!$Resource.DataCache}" afterScriptsLoaded="{!c.afterScriptsLoaded}"/>    
+    <aura:attribute name="statusKeys" type="String[]" />
+    <aura:attribute name="selectedValue" type="String"/>
+    
+    <lightning:select name="statusSelector" label="Status" value="{!v.selectedValue}" onchange="{!c.changeHandler}">
+        <aura:iteration items="{!v.statusKeys}" var="statusKey">
+            <option text="{#statusKey}" value="{#statusKey}"/>
+        </aura:iteration>
+    </lightning:select>
+</aura:component>

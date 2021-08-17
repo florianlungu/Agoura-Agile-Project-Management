@@ -1,0 +1,8 @@
+<aura:component>
+    <aura:registerEvent name="onchange" type="c:ValueChange"/> 
+    <aura:attribute name="selectedValue" type="String" default=""/>
+    <lightning:select name="assignedSelector" label="Assigned To" value="{!v.selectedValue}" onchange="{!c.changeHandler}">
+        <option text="" value=""/>
+        <option text="Me" value="Me"/>
+    </lightning:select>
+</aura:component>

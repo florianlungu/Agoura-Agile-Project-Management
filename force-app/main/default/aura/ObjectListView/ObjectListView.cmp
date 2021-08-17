@@ -1,0 +1,36 @@
+<aura:component controller="ViewControllerExt"> 
+    <aura:attribute name="viewName" type="String" default="" required="true" />
+    <aura:attribute name="iconName" type="String" default="" required="true" />
+    <aura:attribute name="assignedKey" type="String" default=""/>
+    <aura:attribute name="quickLinks" type="List" default=""/>
+    <aura:attribute name="windowTitle" type="String" />
+    <aura:attribute name="canCreateAnchorStory" type="boolean" default="false"/> 
+    <aura:attribute name="canCreateTag" type="boolean" default="false"/>
+    
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+    
+    <div onmouseover="{!c.updateWebPageTitle}"> 
+        <lightning:layout pullToBoundary="small" multipleRows="True">                            
+            <lightning:layoutItem flexibility="auto" size="12" largeDeviceSize="9" class="slds-p-horizontal_small">
+                <div class="slds-card slds-m-bottom_small slds-p-around_medium">
+                    <div class="slds-m-vertical_xx-small slds-p-around_xx-small slds-text-heading_medium">
+                        <lightning:icon iconName="{!v.iconName}" alternativeText="{!v.viewName}" class="agouraIconTop"/>
+                        <aura:if isTrue="{!v.viewName == 'Home'}">
+                            	My Active Records
+                            <aura:set attribute="else">
+                                {!v.viewName}
+                            </aura:set>
+                        </aura:if>
+                    </div>                
+                    <div class="slds-p-right_medium slds-p-top_xx-small">
+                        <c:ViewRecordsFilters view="{!v.viewName}" assignedKey="{!v.assignedKey}" 
+                                                   canCreateAnchorStory="{!v.canCreateAnchorStory}" canCreateTag="{!v.canCreateTag}"/>
+                        <c:ViewRecords view="{!v.viewName}" canCreateAnchorStory="{!v.canCreateAnchorStory}" 
+                                            canCreateTag="{!v.canCreateTag}"/> 
+                    </div> 
+                </div>
+            </lightning:layoutItem>                          
+			<c:QuickLinks quickLinks="{!v.quickLinks}"/>
+        </lightning:layout>
+    </div>
+</aura:component>

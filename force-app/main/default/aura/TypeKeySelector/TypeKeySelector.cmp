@@ -1,0 +1,13 @@
+<aura:component controller="SprintControllerExt">
+    <aura:registerEvent name="onchange" type="c:ValueChange"/>	
+    <ltng:require scripts="{!$Resource.DataCache}" afterScriptsLoaded="{!c.afterScriptsLoaded}"/>    
+    <aura:attribute name="typeKeys" type="String[]" />
+    <aura:attribute name="selectedValue" type="String"/>
+    <aura:attribute name="fieldLabel" type="String"/>  
+    
+    <lightning:select name="typeSelector" label="{!v.fieldLabel}" value="{!v.selectedValue}" onchange="{!c.changeHandler}">
+        <aura:iteration items="{!v.typeKeys}" var="typeKey">
+            <option text="{#typeKey}" value="{#typeKey}"/>
+        </aura:iteration>
+    </lightning:select>
+</aura:component>

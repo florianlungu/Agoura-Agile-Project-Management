@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomFieldTranslation xmlns="http://soap.sforce.com/2006/04/metadata">
+    <label><!-- What can we try different next time? --></label>
+    <name>What_can_we_do_different_next_time__c</name>
+</CustomFieldTranslation>

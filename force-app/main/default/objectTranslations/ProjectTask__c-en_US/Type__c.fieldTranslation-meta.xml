@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomFieldTranslation xmlns="http://soap.sforce.com/2006/04/metadata">
+    <label><!-- Type --></label>
+    <name>Type__c</name>
+    <picklistValues>
+        <masterLabel>Bug</masterLabel>
+        <translation><!-- Bug --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Component</masterLabel>
+        <translation><!-- Component --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Improvement</masterLabel>
+        <translation><!-- Improvement --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>New Feature</masterLabel>
+        <translation><!-- New Feature --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Sub-Task</masterLabel>
+        <translation><!-- Sub-Task --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Task</masterLabel>
+        <translation><!-- Task --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Technical</masterLabel>
+        <translation><!-- Technical --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>User Story</masterLabel>
+        <translation><!-- User Story --></translation>
+    </picklistValues>
+</CustomFieldTranslation>

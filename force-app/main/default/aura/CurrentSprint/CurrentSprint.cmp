@@ -1,0 +1,8 @@
+<aura:component implements="force:appHostable,lightning:actionOverride,lightning:isUrlAddressable" controller="SprintControllerExt" access="global">
+    <aura:attribute name="gSprint" type="Sprint__C"/>
+    <aura:handler name="init" value="{!this}" action="{!c.doInitCS}"/>
+    
+    <aura:if isTrue="{!not(empty(v.gSprint))}">
+        <c:SprintBase record="{!v.gSprint.Id}" recordId="{!v.gSprint.Id}" targetFields="{!v.gSprint}"/>
+    </aura:if>
+</aura:component>

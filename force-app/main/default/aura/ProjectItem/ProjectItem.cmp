@@ -1,0 +1,271 @@
+<aura:component implements="lightning:actionOverride,flexipage:availableForRecordHome,force:hasRecordId" 
+                controller="ProjectItemControllerExt" access="global">
+    <aura:attribute name="record" type="Id" />
+    <aura:attribute name="targetFields" type="ProjectItem__c" />
+    <aura:attribute name="recordError" type="String" default=""/>
+    <aura:attribute name="itemImage" type="String" default=""/>
+    <aura:attribute name="hasEditAccess" type="boolean" default="false"/>    
+    <aura:attribute name="hasDeleteAccess" type="boolean" default="false"/>
+    <aura:attribute name="projectSelection" type="List" default="[]"/>
+    <aura:attribute name="createdByList" type="List" default="[]"/>	
+    <aura:attribute name="lastModifiedByList" type="List" default="[]"/>
+    <aura:attribute name="userSelection" type="List" default="[]"/>
+    <aura:attribute name="windowTitle" type="String" />
+    <aura:attribute name="isUserType" type="boolean" default="false"/> 
+    <aura:attribute name="fieldLabelMap" type="Map" default="{}"/>	
+    
+    <force:recordData aura:id="forceRecord"
+                      recordId="{!v.recordId}"
+                      targetFields="{!v.targetFields}"
+                      fields="Id, Name, AgouraFree__Project__c, AgouraFree__Type__c, AgouraFree__Target_Date__c, AgouraFree__Progress__c, AgouraFree__Comments__c, 
+                              AgouraFree__Probability__c, AgouraFree__Impact__c, AgouraFree__Status__c, AgouraFree__Response__c, AgouraFree__Description__c, 
+                              AgouraFree__URL__c, AgouraFree__Swim_Lane__r.AgouraFree__Title__c, AgouraFree__RACI__c, CreatedDate, LastModifiedDate, 
+                              AgouraFree__Title__c, AgouraFree__Start_Date__c"
+                      mode="VIEW" />
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+    
+    <!-- Display Lightning Data Service errors, if any -->
+    <aura:if isTrue="{!not(empty(v.recordError))}">
+        <div class="recordError">
+            <ui:message title="Error" severity="error" closable="true">
+                {!v.recordError}
+            </ui:message>
+        </div>
+    </aura:if>
+    
+    <!-- Header -->
+    <article id="forceRecord" onmouseover="{!c.updateWebPageTitle}">
+        <div class="slds-card">
+            <div class="slds-card__header slds-grid">
+                <header class="slds-media slds-media_center slds-has-flexi-truncate">
+                    <aura:if isTrue="{!v.isUserType}">                        
+                        <div class="slds-media__figure">
+                            <span class="slds-avatar slds-avatar_circle" title="User Avatar">
+                                <img alt="{!v.userSelection[0].title}" src="{!v.userSelection[0].icon}" title="User avatar" />
+                            </span>
+                        </div>
+                        <div class="slds-media__body">
+                            <p>{!v.targetFields.AgouraFree__Type__c + ' • ' + v.targetFields.Id}</p>  
+                            <h1 class="slds-page-header__title slds-truncate slds-align-bottom" title="{!v.targetFields.title}">
+                                <span>{!v.userSelection[0].title}</span>
+                            </h1>
+                        </div>
+                        
+                        <aura:set attribute="else">
+                            <div class="slds-media__figure">
+                                <lightning:icon iconName="{!v.itemImage}" alternativeText="{!v.targetFields.AgouraFree__Type__c}" class="agouraIcon"/>
+                            </div>
+                            <div class="slds-media__body">
+                                <p>{!v.targetFields.AgouraFree__Type__c + ' • ' + v.targetFields.Name}</p>  
+                                <h1 class="slds-page-header__title slds-truncate slds-align-bottom" title="{!v.targetFields.AgouraFree__Title__c}">
+                                    <span>{!v.targetFields.AgouraFree__Title__c}</span>
+                                </h1>
+                            </div>
+                        </aura:set>
+                    </aura:if>
+                </header>
+            </div>
+        </div>
+        
+        <!-- Body -->
+        <div class="slds-card slds-p-horizontal_medium slds-p-vertical_medium">
+            <!-- all -->
+            <div class="slds-grid slds-gutters slds-p-top_xxx-small">
+                <div class="slds-col slds-size_1-of-2">
+                    <div class="slds-size_1-of-1 slds-p-bottom_large" style="white-space:pre-wrap">
+                        <p class="slds-text-title slds-m-bottom_xx-small">Project</p>
+                        <div id="{! globalId + '_selection' }" role="listbox" aria-orientation="horizontal">
+                            <c:LookupDisplay selection="{!v.projectSelection}" />
+                        </div>
+                    </div>
+                </div>
+                <div class="slds-col slds-size_1-of-2">
+                    <div class="slds-size_1-of-1 slds-p-bottom_large" style="white-space:pre-wrap">
+                        <p class="slds-text-title slds-m-bottom_xx-small">{!v.fieldLabelMap.AgouraFree__Type__c}</p>
+                        <span>{!v.targetFields.AgouraFree__Type__c}</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Project Goal -->
+            <aura:if isTrue="{!v.targetFields.AgouraFree__Type__c == 'Project Goal'}">
+                <div class="slds-grid slds-gutters slds-p-top_xxx-small">
+                    <div class="slds-col slds-size_1-of-2">
+                        <div class="slds-size_1-of-1 slds-p-bottom_large" style="white-space:pre-wrap">
+                            <p class="slds-text-title slds-m-bottom_xx-small">{!v.fieldLabelMap.AgouraFree__Start_Date__c}</p>
+                            <div id="{! globalId + '_selection' }" role="listbox" aria-orientation="horizontal">
+                                <span><ui:outputDate value="{!v.targetFields.AgouraFree__Start_Date__c}" /></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="slds-col slds-size_1-of-2">
+                        <div class="slds-size_1-of-1 slds-p-bottom_large" style="white-space:pre-wrap">
+                            <p class="slds-text-title slds-m-bottom_xx-small">{!v.fieldLabelMap.AgouraFree__Target_Date__c}</p>
+                            <div id="{! globalId + '_selection' }" role="listbox" aria-orientation="horizontal">
+                                <span><ui:outputDate value="{!v.targetFields.AgouraFree__Target_Date__c}" /></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>            
+                <div class="slds-grid slds-gutters slds-p-top_xxx-small">
+                    <div class="slds-col slds-size_1-of-2">
+                        <div class="slds-size_1-of-1 slds-p-bottom_large" style="white-space:pre-wrap">
+                            <p class="slds-text-title slds-m-bottom_xx-small">{!v.fieldLabelMap.AgouraFree__Progress__c}</p>
+                            <lightning:formattedNumber value="{!v.targetFields.AgouraFree__Progress__c}" style="percent-fixed" />
+                        </div>
+                    </div>
+                    <div class="slds-col slds-size_1-of-2">
+                        <div class="slds-size_1-of-1 slds-p-bottom_large" style="white-space:pre-wrap">
+                            <p class="slds-text-title slds-m-bottom_xx-small">{!v.fieldLabelMap.AgouraFree__Comments__c}</p>
+                            <span>{!v.targetFields.AgouraFree__Comments__c}</span>
+                        </div>
+                    </div>
+                </div>
+            </aura:if>
+            
+            <!-- Project Milestone -->
+            <aura:if isTrue="{!v.targetFields.AgouraFree__Type__c == 'Project Milestone'}">
+                <div class="slds-grid slds-gutters slds-p-top_xxx-small">
+                    <div class="slds-col slds-size_1-of-2">
+                        <div class="slds-size_1-of-1 slds-p-bottom_large" style="white-space:pre-wrap">
+                            <p class="slds-text-title slds-m-bottom_xx-small">{!v.fieldLabelMap.AgouraFree__Target_Date__c}</p>
+                            <div id="{! globalId + '_selection' }" role="listbox" aria-orientation="horizontal">
+                                <span><ui:outputDate value="{!v.targetFields.AgouraFree__Target_Date__c}" /></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="slds-col slds-size_1-of-2">
+                        <div class="slds-size_1-of-1 slds-p-bottom_large" style="white-space:pre-wrap">
+                            <p class="slds-text-title slds-m-bottom_xx-small">{!v.fieldLabelMap.AgouraFree__Progress__c}</p>
+                            <lightning:formattedNumber value="{!v.targetFields.AgouraFree__Progress__c}" style="percent-fixed" />
+                        </div>
+                    </div>
+                </div>            
+                <div class="slds-grid slds-gutters slds-p-top_xxx-small">
+                    <div class="slds-col slds-size_1-of-1">
+                        <div class="slds-size_1-of-1 slds-p-bottom_large" style="white-space:pre-wrap">
+                            <p class="slds-text-title slds-m-bottom_xx-small">{!v.fieldLabelMap.AgouraFree__Comments__c}</p>
+                            <span>{!v.targetFields.AgouraFree__Comments__c}</span>
+                        </div>
+                    </div>
+                </div>
+            </aura:if>
+            
+            <!-- Project Link -->
+            <aura:if isTrue="{!v.targetFields.AgouraFree__Type__c == 'Project Link'}">         
+                <div class="slds-grid slds-gutters slds-p-top_xxx-small">
+                    <div class="slds-col slds-size_1-of-1">
+                        <div class="slds-size_1-of-1 slds-p-bottom_large" style="white-space:pre-wrap">
+                            <p class="slds-text-title slds-m-bottom_xx-small">{!v.fieldLabelMap.AgouraFree__URL__c}</p>
+                            <p><lightning:formattedUrl value="{!v.targetFields.AgouraFree__URL__c}" /></p>
+                        </div>
+                    </div>
+                </div>          
+                <div class="slds-grid slds-gutters slds-p-top_xxx-small">
+                    <div class="slds-col slds-size_1-of-1">
+                        <div class="slds-size_1-of-1 slds-p-bottom_large" style="white-space:pre-wrap">
+                            <p class="slds-text-title slds-m-bottom_xx-small">Project Link Owner</p>
+                            <div id="{! globalId + '_selection' }" role="listbox" aria-orientation="horizontal">
+                                <c:LookupDisplay selection="{!v.userSelection}" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </aura:if>
+            
+            <!-- Project Risk -->
+            <aura:if isTrue="{!v.targetFields.AgouraFree__Type__c == 'Project Risk'}">          
+                <div class="slds-grid slds-gutters slds-p-top_xxx-small">
+                    <div class="slds-col slds-size_1-of-1">
+                        <div class="slds-size_1-of-1 slds-p-bottom_large" style="white-space:pre-wrap">
+                            <p class="slds-text-title slds-m-bottom_xx-small">{!v.fieldLabelMap.AgouraFree__Status__c}</p>
+                            <span>{!v.targetFields.AgouraFree__Status__c}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="slds-grid slds-gutters slds-p-top_xxx-small">
+                    <div class="slds-col slds-size_1-of-2">
+                        <div class="slds-size_1-of-1 slds-p-bottom_large" style="white-space:pre-wrap">
+                            <p class="slds-text-title slds-m-bottom_xx-small">{!v.fieldLabelMap.AgouraFree__Probability__c}</p>
+                            <span>{!v.targetFields.AgouraFree__Probability__c}</span>
+                        </div>
+                    </div>
+                    <div class="slds-col slds-size_1-of-2">
+                        <div class="slds-size_1-of-1 slds-p-bottom_large" style="white-space:pre-wrap">
+                            <p class="slds-text-title slds-m-bottom_xx-small">{!v.fieldLabelMap.AgouraFree__Impact__c}</p>
+                            <span>{!v.targetFields.AgouraFree__Impact__c}</span>
+                        </div>
+                    </div>
+                </div>            
+                <div class="slds-grid slds-gutters slds-p-top_xxx-small">
+                    <div class="slds-col slds-size_1-of-1">
+                        <div class="slds-size_1-of-1 slds-p-bottom_large" style="white-space:pre-wrap">
+                            <p class="slds-text-title slds-m-bottom_xx-small">{!v.fieldLabelMap.AgouraFree__Description__c}</p>
+                            <span>{!v.targetFields.AgouraFree__Description__c}</span>
+                        </div>
+                    </div>
+                </div>         
+                <div class="slds-grid slds-gutters slds-p-top_xxx-small">
+                    <div class="slds-col slds-size_1-of-1">
+                        <div class="slds-size_1-of-1 slds-p-bottom_large" style="white-space:pre-wrap">
+                            <p class="slds-text-title slds-m-bottom_xx-small">{!v.fieldLabelMap.AgouraFree__Response__c}</p>
+                            <span>{!v.targetFields.AgouraFree__Response__c}</span>
+                        </div>
+                    </div>
+                </div>
+            </aura:if>
+            
+            <!-- Project Stakeholders -->
+            <aura:if isTrue="{!v.isUserType}">         
+                <div class="slds-grid slds-gutters slds-p-top_xxx-small">
+                    <div class="slds-col slds-size_1-of-2">
+                        <div class="slds-size_1-of-1 slds-p-bottom_large" style="white-space:pre-wrap">
+                            <p class="slds-text-title slds-m-bottom_xx-small">{!v.targetFields.AgouraFree__Type__c}</p>
+                            <div id="{! globalId + '_selection' }" role="listbox" aria-orientation="horizontal">
+                                <c:LookupDisplay selection="{!v.userSelection}" />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="slds-col slds-size_1-of-2">
+                        <div class="slds-size_1-of-1 slds-p-bottom_large" style="white-space:pre-wrap">
+                            <aura:if isTrue="{!v.targetFields.AgouraFree__Type__c == 'Project Team Member'}">
+                                <p class="slds-text-title slds-m-bottom_xx-small">Swim Lane</p>
+                                <div id="{! globalId + '_selection' }" role="listbox" aria-orientation="horizontal">
+                                    <span>{!v.targetFields.AgouraFree__Swim_Lane__r.AgouraFree__Title__c}</span>
+                                </div>                            
+                            </aura:if>
+                            <aura:if isTrue="{!v.targetFields.AgouraFree__Type__c == 'Project Stakeholder'}">
+                                <p class="slds-text-title slds-m-bottom_xx-small">{!v.fieldLabelMap.AgouraFree__RACI__c}</p>
+                                <div id="{! globalId + '_selection' }" role="listbox" aria-orientation="horizontal">
+                                    <span>{!v.targetFields.AgouraFree__RACI__c}</span>
+                                </div>                            
+                            </aura:if>
+                        </div>
+                    </div>
+                </div>                 
+            </aura:if>
+            
+            <!-- all -->
+            <div class="slds-grid slds-gutters slds-p-top_xxx-small">
+                <div class="slds-col slds-size_1-of-2">
+                    <div class="slds-size_1-of-1 slds-p-bottom_large" style="white-space:pre-wrap">
+                        <p class="slds-text-title slds-m-bottom_xx-small">Created By</p>
+                        <div id="{! globalId + '_selection' }" role="listbox" aria-orientation="horizontal">
+                            <c:LookupDisplay selection="{!v.createdByList}" />
+                            <span class="slds-m-top_xxx-small slds-p-top_xx-small" style="display:inline-block;vertical-align:top;"> on <ui:outputDateTime value="{!v.targetFields.CreatedDate}" /></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="slds-col slds-size_1-of-2">
+                    <div class="slds-size_1-of-1 slds-p-bottom_large" style="white-space:pre-wrap">
+                        <p class="slds-text-title slds-m-bottom_xx-small">Last Modified By</p>
+                        <div id="{! globalId + '_selection' }" role="listbox" aria-orientation="horizontal">
+                            <c:LookupDisplay selection="{!v.lastModifiedByList}" />
+                            <span class="slds-m-top_xxx-small slds-p-top_xx-small" style="display:inline-block;vertical-align:top;"> on <ui:outputDateTime value="{!v.targetFields.LastModifiedDate}" /></span>
+                        </div>  
+                    </div>
+                </div>
+            </div>
+        </div> 
+    </article>  
+</aura:component>

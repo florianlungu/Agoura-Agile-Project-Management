@@ -1,0 +1,144 @@
+<aura:component implements="lightning:actionOverride,force:hasRecordId" controller="IdeaBoardControllerExt">    
+    <aura:attribute name="statusPicklistValues" type="Object" />
+    <aura:attribute name="ideaBoardRecord" type="IdeaBoard__c" />
+    <aura:attribute name="modalContext" type="String" default="New" />
+    <aura:attribute name="recordError" type="String" default=""/>
+    <aura:attribute name="hasEditAccess" type="boolean" default="false"/>
+    <aura:attribute name="hasTransferAccess" type="boolean" default="false"/>
+    <aura:attribute name="ideaTagList" type="List" default="[]"/>	
+    <aura:attribute name="tagSelection" type="List" default="[]"/>	
+    <aura:attribute name="readAccessList" type="List" default="[]"/>	
+    <aura:attribute name="readAccessSelection" type="List" default="[]"/>	
+    <aura:attribute name="editAccessList" type="List" default="[]"/>	
+    <aura:attribute name="editAccessSelection" type="List" default="[]"/>	
+    <aura:attribute name="windowTitle" type="String"/>
+    <aura:attribute name="formStyle" type="String" default="{'topDiv':'', 'secondDiv':'', 'headerDiv':'','mainDiv':'', 'footerDiv':''}"/>
+    <aura:attribute name="fieldLabelMap" type="Map" default="{}"/>	
+    
+    <force:recordData aura:id="forceRecord"
+                      recordId="{!v.recordId}"
+                      targetFields="{!v.ideaBoardRecord}"
+                      fields="Id, Name, AgouraFree__Title__c, AgouraFree__Status__c, AgouraFree__Problem__c, AgouraFree__Existing_Alternatives__c, 
+                              AgouraFree__Solution__c, AgouraFree__Key_Metrics__c, AgouraFree__Unique_Value_Proposition__c, AgouraFree__High_Level_Concept__c, 
+                              AgouraFree__Unfair_Advantage__c, AgouraFree__Channels__c, AgouraFree__Customer_Segment__c, AgouraFree__Early_Adopters__c, 
+                              AgouraFree__Cost_Structure__c, AgouraFree__Revenue_Streams__c, AgouraFree__Comments__c"
+                      mode="EDIT" 
+                      layoutType="FULL"/>
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+    <c:PickListValues sObjectName="AgouraFree__IdeaBoard__c" fieldName="AgouraFree__Status__c" picklistValues="{!v.statusPicklistValues}" />
+    
+    <div aura:id="editDialog" role="dialog" tabindex="-1" aria-labelledby="header43" class="{!v.formStyle.topDiv}" 
+         onmouseover="{!c.updateWebPageTitle}">
+        <div class="{!v.formStyle.secondDiv}">
+            <div class="{!v.formStyle.headerDiv}">
+                <h2 class="slds-text-heading--medium">{!v.modalContext} Idea Board</h2>
+            </div>
+            <div class="{!v.formStyle.mainDiv}"> 
+                <lightning:input aura:id="propTitle" maxlength="255" value="{!v.ideaBoardRecord.AgouraFree__Title__c}" 
+                                 label="{!v.fieldLabelMap.AgouraFree__Title__c}" required="true" class="slds-size--2-of-2 slds-p-around_x-small" />  
+                <lightning:input aura:id="propName" value="{!v.ideaBoardRecord.Name}" 
+                                 label="Idea Unique Id" readonly="true" class="slds-size--1-of-2 slds-p-around_x-small" />             
+                <lightning:select aura:id="propStatus" value="{!v.ideaBoardRecord.AgouraFree__Status__c}" 
+                                  label="{!v.fieldLabelMap.AgouraFree__Status__c}" required="true" class="slds-size--1-of-2 slds-p-around_x-small">
+                    <aura:iteration items="{!v.statusPicklistValues}" var="item">
+                        <option value="{!item}" selected="{!if(v.ideaBoardRecord.AgouraFree__Status__c==item,'selected','')}">{!item}</option>
+                    </aura:iteration>
+                </lightning:select>
+                <lightning:textarea aura:id="propProblem" maxlength="2000" value="{!v.ideaBoardRecord.AgouraFree__Problem__c}" 
+                                    label="{!v.fieldLabelMap.AgouraFree__Problem__c}" class="slds-size--1-of-2 slds-p-around_x-small bigly"
+                                     placeholder="List your top 1-3 problems"/>                
+                <lightning:textarea aura:id="propExistingAlternatives" maxlength="2000" value="{!v.ideaBoardRecord.AgouraFree__Existing_Alternatives__c}" 
+                                    label="{!v.fieldLabelMap.AgouraFree__Existing_Alternatives__c}" class="slds-size--1-of-2 slds-p-around_x-small bigly"
+                                     placeholder="List how these problems are solved today"/>  
+                <lightning:textarea aura:id="propSolution" maxlength="2000" value="{!v.ideaBoardRecord.AgouraFree__Solution__c}" 
+                                    label="{!v.fieldLabelMap.AgouraFree__Solution__c}" class="slds-size--1-of-2 slds-p-around_x-small bigly"
+                                     placeholder="Outline a possible solution to each problem"/> 
+                <lightning:textarea aura:id="propKeyMetrics" maxlength="2000" value="{!v.ideaBoardRecord.AgouraFree__Key_Metrics__c}" 
+                                    label="{!v.fieldLabelMap.AgouraFree__Key_Metrics__c}" class="slds-size--1-of-2 slds-p-around_x-small bigly"
+                                     placeholder="List the key numbers that tell you how your business is doing"/> 
+                <lightning:textarea aura:id="propUniqueValueProposition" maxlength="2000" value="{!v.ideaBoardRecord.AgouraFree__Unique_Value_Proposition__c}" 
+                                    label="{!v.fieldLabelMap.AgouraFree__Unique_Value_Proposition__c}" class="slds-size--1-of-2 slds-p-around_x-small bigly"
+                                     placeholder="Single, clear, compelling message that states why you are different and worth paying attention"/> 
+                <lightning:textarea aura:id="propHighLevelConcept" maxlength="2000" value="{!v.ideaBoardRecord.AgouraFree__High_Level_Concept__c}" 
+                                    label="{!v.fieldLabelMap.AgouraFree__High_Level_Concept__c}" class="slds-size--1-of-2 slds-p-around_x-small bigly"
+                                    placeholder="List your X for Y analogy e.g. YouTube = Flickr for videos"/> 
+                <lightning:textarea aura:id="propUnfairAdvantage" maxlength="2000" value="{!v.ideaBoardRecord.AgouraFree__Unfair_Advantage__c}" 
+                                    label="{!v.fieldLabelMap.AgouraFree__Unfair_Advantage__c}" class="slds-size--1-of-2 slds-p-around_x-small bigly"
+                                     placeholder="Something that cannot be easily bought or copied"/> 
+                <lightning:textarea aura:id="propChannels" maxlength="2000" value="{!v.ideaBoardRecord.AgouraFree__Channels__c}" 
+                                    label="{!v.fieldLabelMap.AgouraFree__Channels__c}" class="slds-size--1-of-2 slds-p-around_x-small bigly"
+                                     placeholder="List your path to customers (inbound or outbound)"/> 
+                <lightning:textarea aura:id="propCustomerSegment" maxlength="2000" value="{!v.ideaBoardRecord.AgouraFree__Customer_Segment__c}" 
+                                    label="{!v.fieldLabelMap.AgouraFree__Customer_Segment__c}" class="slds-size--1-of-2 slds-p-around_x-small bigly"
+                                     placeholder="List your target customers and users"/> 
+                <lightning:textarea aura:id="propEarlyAdopters" maxlength="2000" value="{!v.ideaBoardRecord.AgouraFree__Early_Adopters__c}" 
+                                    label="{!v.fieldLabelMap.AgouraFree__Early_Adopters__c}" class="slds-size--1-of-2 slds-p-around_x-small bigly"
+                                     placeholder="List the characteristics of your ideal customers"/> 
+                <lightning:textarea aura:id="propCostStructure" maxlength="2000" value="{!v.ideaBoardRecord.AgouraFree__Cost_Structure__c}" 
+                                    label="{!v.fieldLabelMap.AgouraFree__Cost_Structure__c}" class="slds-size--1-of-2 slds-p-around_x-small bigly"
+                                     placeholder="List your fixed and variable costs"/> 
+                <lightning:textarea aura:id="propRevenueStreams" maxlength="2000" value="{!v.ideaBoardRecord.AgouraFree__Revenue_Streams__c}" 
+                                    label="{!v.fieldLabelMap.AgouraFree__Revenue_Streams__c}" class="slds-size--1-of-2 slds-p-around_x-small bigly"
+                                     placeholder="List your sources of revenue"/>                 
+                <div class="slds-size--2-of-2 slds-p-around_none">  
+                    <lightning:textarea aura:id="propComments" maxlength="131072" value="{!v.ideaBoardRecord.AgouraFree__Comments__c}" 
+                                        label="{!v.fieldLabelMap.AgouraFree__Comments__c}" class="slds-size--2-of-2 slds-p-around_x-small bigly"/>   
+                </div> 
+                
+                <aura:if isTrue="{!v.recordId != null}">
+                    <div class="slds-size--2-of-2 slds-p-around_x-small" style="height:auto">                    
+                        <div class="slds-form slds-form_stacked">
+                            <c:Lookup aura:id="propTags" selection="{!v.tagSelection}" onSearch="{!c.lookupTagSearch}" 
+                                      label="Tags" placeholder="Search Tags" isMultiEntry="true"/>
+                        </div>
+                    </div>
+                    <div class="slds-size--2-of-2 slds-p-around_x-small" style="height:auto">                    
+                        <div class="slds-form slds-form_stacked">
+                            <aura:if isTrue="{!v.hasTransferAccess == true}">
+                                <c:Lookup aura:id="propReadAccess" selection="{!v.readAccessSelection}" onSearch="{!c.lookupReadSearch}" 
+                                          label="Read Access"  placeholder="Search Users and Groups" isMultiEntry="true"/>
+                                <aura:set attribute="else">
+                                    <p class="slds-text-title slds-m-bottom_xx-small">Read Access</p>
+                                    <div id="{! globalId + '_selection' }" role="listbox" aria-orientation="horizontal">
+                                        <c:LookupDisplay selection="{!v.readAccessList}" />
+                                    </div>
+                                </aura:set>
+                            </aura:if>
+                        </div>
+                    </div>
+                    <div class="slds-size--2-of-2 slds-p-around_x-small" style="height:auto; padding-bottom:5em">                    
+                        <div class="slds-form slds-form_stacked">
+                            <aura:if isTrue="{!v.hasTransferAccess == true}">
+                                <c:Lookup aura:id="propEditAccess" selection="{!v.editAccessSelection}" onSearch="{!c.lookupEditSearch}" 
+                                          label="Edit Access" placeholder="Search Users and Groups" isMultiEntry="true"/>
+                                <aura:set attribute="else">
+                                    <p class="slds-text-title slds-m-bottom_xx-small">Edit Access</p>
+                                    <div id="{! globalId + '_selection' }" role="listbox" aria-orientation="horizontal">
+                                        <c:LookupDisplay selection="{!v.editAccessList}" />
+                                    </div>
+                                </aura:set>
+                            </aura:if>
+                        </div>
+                    </div>
+                    
+                    <aura:set attribute="else">
+                        <div class="slds-size_2-of-2 slds-p-around_x-small slds-text-color_weak" style="padding-bottom:5em">
+                            <p>** Idea Board must first be saved before Tags, Read Access, and Edit Access can be set.</p>
+                        </div>  
+                    </aura:set>    
+                </aura:if>   
+            </div>
+            <div class="{!v.formStyle.footerDiv}"> 
+                <div style="float:right">
+                    <lightning:button variant="neutral" label="Cancel" onclick="{!c.cancelDialog}"/>
+                    <aura:if isTrue="{!and(empty(v.recordError),v.hasEditAccess == true)}">
+                        <lightning:button variant="brand" label="Save" onclick="{!c.saveRecord}"/>
+                    </aura:if>
+                </div>
+            </div>
+        </div>
+    </div>
+    <aura:if isTrue="{!$Browser.formFactor == 'DESKTOP'}">
+        <div aura:id="overlay" class="slds-backdrop slds-backdrop--open"></div>
+    </aura:if>
+</aura:component>

@@ -12,7 +12,7 @@ Introduce your teams to Agile on top of Salesforce the #1 CRM platform in the wo
 ## Description
 Agoura is simple and easy-to-use project management software following the most popular Agile frameworks: Scrum, Kanban, Large-Scale Scrum (LeSS), and Scaled Agile Framework (SAFe 5.0) — 100% native on the Salesforce cloud
 
-Source Code: https://github.com/florianlungu/Agoura-Project-Management
+Source Code: https://github.com/florianlungu/Agoura-Agile-Project-Management
 
 ?? Click "Get It Now" to start completely FREE today ??
 
